@@ -1,0 +1,163 @@
+{
+  "id": "scenario_01",
+  "title": "Bone Deep",
+  "synopsis": "Diabetic foot infection with suspected osteomyelitis and bacteremia in a patient with CKD Stage 3b and a low-risk penicillin allergy history.",
+  "timelineStages": [
+    {
+      "id": "t0",
+      "label": "T0",
+      "title": "Admission",
+      "description": "Empiric therapy must begin before culture results are available.",
+      "empiricOptions": ["vancomycin", "cefepime", "piperacillin_tazobactam", "daptomycin", "cefazolin", "meropenem", "linezolid"],
+      "defaultFeedback": "Select empiric antimicrobial therapy. Consider spectrum, renal function, and allergy history."
+    },
+    {
+      "id": "t12",
+      "label": "T12",
+      "title": "12 Hours",
+      "description": "MRI confirms osteomyelitis. Renal function has worsened.",
+      "requiresRegimen": true,
+      "advanceLabel": "Advance to T36"
+    },
+    {
+      "id": "t36",
+      "label": "T36",
+      "title": "36–48 Hours",
+      "description": "Blood culture results finalized. Reassess and de-escalate.",
+      "requiresRegimen": true,
+      "showsCulture": true,
+      "advanceLabel": "Advance to Outcome"
+    },
+    {
+      "id": "outcome",
+      "label": "Outcome",
+      "title": "Clinical Outcome",
+      "description": "Treatment course assessment based on stewardship decisions."
+    }
+  ],
+  "timelineEvents": {
+    "t0": [
+      {
+        "id": "t0_presenting",
+        "type": "clinical",
+        "title": "Presenting Syndrome",
+        "summary": "Diabetic foot infection with suspected osteomyelitis and bacteremia",
+        "detail": "Blood cultures drawn ×2. Plain film: periosteal reaction at 5th metatarsal. MRI pending. Wound with purulent drainage; bone visible at base."
+      },
+      {
+        "id": "t0_labs",
+        "type": "lab",
+        "title": "Admission Labs",
+        "summary": "WBC 14.8 · SCr 1.9 · Glucose 312 · Lactate 1.8",
+        "detail": "Estimated CrCl ~32 mL/min (CKD 3b baseline). CRP elevated. Blood cultures pending."
+      }
+    ],
+    "t12": [
+      {
+        "id": "t12_mri",
+        "type": "imaging",
+        "title": "MRI Right Foot",
+        "summary": "Osteomyelitis 5th metatarsal head + adjacent abscess",
+        "detail": "MRI confirms osteomyelitis of the 5th metatarsal head with adjacent soft tissue abscess. Podiatry consulted; debridement scheduled."
+      },
+      {
+        "id": "t12_renal",
+        "type": "lab",
+        "title": "Worsening Renal Function",
+        "summary": "SCr 2.3 (↑ from 1.9) · CrCl ~22 mL/min",
+        "detail": "AKI on CKD. Nephrotoxic agents require dose reassessment. Vancomycin AUC monitoring indicated if on board."
+      },
+      {
+        "id": "t12_alert",
+        "type": "alert",
+        "title": "AKI Alert",
+        "summary": "Acute kidney injury — review renally cleared agents",
+        "detail": "CrCl now below 30. Cefepime, vancomycin, piperacillin-tazobactam, and daptomycin all require adjustment."
+      }
+    ],
+    "t36": [
+      {
+        "id": "t36_culture",
+        "type": "microbiology",
+        "title": "Blood Culture Final",
+        "summary": "Staphylococcus aureus — MSSA",
+        "detail": "Blood cultures ×2 both bottles positive. Oxacillin susceptible. Interpretation: Methicillin-Susceptible Staphylococcus aureus. De-escalation to beta-lactam preferred.",
+        "organism": {
+          "name": "Staphylococcus aureus",
+          "morphology": "gram_positive_cocci",
+          "interpretation": "MSSA",
+          "resistance": [],
+          "susceptibilities": [
+            { "drug": "Oxacillin", "result": "S" },
+            { "drug": "Cefazolin", "result": "S" },
+            { "drug": "Clindamycin", "result": "S" },
+            { "drug": "TMP-SMX", "result": "S" },
+            { "drug": "Vancomycin", "result": "S" },
+            { "drug": "Doxycycline", "result": "S" }
+          ]
+        }
+      },
+      {
+        "id": "t36_clinical",
+        "type": "clinical",
+        "title": "Clinical Status",
+        "summary": "Patient improving; afebrile 18 hours",
+        "detail": "Inflammatory markers trending down. Foot erythema decreased. Ready for targeted therapy de-escalation."
+      }
+    ],
+    "outcome": [
+      {
+        "id": "outcome_summary",
+        "type": "clinical",
+        "title": "Treatment Course Summary",
+        "summary": "Stewardship assessment complete",
+        "detail": "Review regimen choices across the timeline. Outcome reflects coverage, safety, de-escalation, and renal stewardship."
+      }
+    ]
+  },
+  "vitalsByStage": {
+    "t0": { "hr": 104, "bp": "114/70", "rr": 18, "temp": 38.9, "spo2": 97 },
+    "t12": { "hr": 98, "bp": "108/68", "rr": 18, "temp": 38.2, "spo2": 96 },
+    "t36": { "hr": 88, "bp": "118/72", "rr": 16, "temp": 37.4, "spo2": 98 },
+    "outcome": { "hr": 76, "bp": "122/74", "rr": 14, "temp": 36.8, "spo2": 99 }
+  },
+  "labsByStage": {
+    "t0": { "wbc": 14.8, "wbcTrend": [12.1, 13.4, 14.8], "scr": 1.9, "scrTrend": [1.7, 1.8, 1.9] },
+    "t12": { "wbc": 13.2, "wbcTrend": [14.8, 14.1, 13.2], "scr": 2.3, "scrTrend": [1.9, 2.1, 2.3] },
+    "t36": { "wbc": 10.4, "wbcTrend": [13.2, 11.8, 10.4], "scr": 2.0, "scrTrend": [2.3, 2.1, 2.0] },
+    "outcome": { "wbc": 8.2, "wbcTrend": [10.4, 9.3, 8.2], "scr": 1.7, "scrTrend": [2.0, 1.85, 1.7] }
+  },
+  "severityByStage": {
+    "t0": "septic",
+    "t12": "deteriorating",
+    "t36": "improving",
+    "outcome": "stable"
+  },
+  "alertsByStage": {
+    "t0": [],
+    "t12": ["AKI — worsening renal function", "Pending surgical source control"],
+    "t36": ["De-escalation window open"],
+    "outcome": []
+  },
+  "stewardshipFeedback": {
+    "empiric": {
+      "vancomycin+cefepime": { "tier": "reasonable", "message": "Good empiric coverage. Vancomycin + cefepime avoids vanco/pip-tazo nephrotoxicity interaction. Ensure cefepime renal dose adjustment at CrCl ~30." },
+      "vancomycin+piperacillin_tazobactam": { "tier": "reasonable", "message": "Broad coverage but vancomycin + pip-tazo carries significant nephrotoxicity signal — especially concerning with baseline CKD and worsening AKI." },
+      "vancomycin": { "tier": "suboptimal", "message": "Incomplete gram-negative coverage for diabetic foot infection. MRSA coverage alone is a gap empirically." },
+      "daptomycin+cefepime": { "tier": "reasonable", "message": "Valid alternative. Obtain baseline CK; daptomycin inactivated in pneumonia (not applicable here)." },
+      "cefazolin": { "tier": "risky", "message": "No MRSA coverage empirically. Cefazolin is optimal once MSSA confirmed — not before." },
+      "meropenem+vancomycin": { "tier": "risky", "message": "Excessive empiric spectrum without documented resistant organism risk. Carbapenem stewardship failure." },
+      "linezolid": { "tier": "risky", "message": "Bacteriostatic agent inappropriate as monotherapy for empiric bacteremia. No gram-negative coverage." },
+      "daptomycin": { "tier": "suboptimal", "message": "Gram-positive coverage only. Diabetic foot infections typically require empiric gram-negative coverage." },
+      "default": { "tier": "reasonable", "message": "Review spectrum against syndrome, renal function, and allergy history." }
+    },
+    "deescalation": {
+      "cefazolin": { "tier": "optimal", "message": "Optimal MSSA de-escalation. Beta-lactams superior to vancomycin for MSSA bacteremia. Low-risk penicillin allergy supports cephalosporin use." },
+      "vancomycin": { "tier": "suboptimal", "message": "Continuing vancomycin for confirmed MSSA is a stewardship failure. Susceptibility ≠ optimal agent selection." },
+      "nafcillin": { "tier": "reasonable", "message": "Active for MSSA but higher hepatotoxicity burden than cefazolin. Acknowledge penicillin allergy history." },
+      "daptomycin": { "tier": "reasonable", "message": "Acceptable when beta-lactam truly contraindicated. Low-risk allergy history does not justify avoidance." },
+      "linezolid": { "tier": "risky", "message": "Bacteriostatic — not appropriate for Staphylococcal bacteremia. High treatment failure risk." },
+      "default": { "tier": "reasonable", "message": "Targeted therapy should match culture results and clinical improvement." }
+    }
+  }
+}

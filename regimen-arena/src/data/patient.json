@@ -1,0 +1,21 @@
+{
+  "id": "scenario_01_patient",
+  "name": "R.M.",
+  "age": 58,
+  "sex": "male",
+  "weight_kg": 94,
+  "pmh": [
+    "Type 2 Diabetes (poorly controlled)",
+    "Hypertension",
+    "CKD Stage 3b (baseline CrCl ~32 mL/min)"
+  ],
+  "allergies": [
+    {
+      "allergen": "Penicillin",
+      "reaction": "Rash",
+      "onset": "Childhood",
+      "risk_level": "low"
+    }
+  ],
+  "presentation": "2 days of worsening right foot pain, redness, and drainage from a chronic plantar wound. Exam: 2 cm plantar wound with purulent drainage, 6 cm surrounding erythema, bony structures visible at wound base."
+}

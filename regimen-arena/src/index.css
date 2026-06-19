@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-clinical-bg: #0f1419;
+  --color-clinical-panel: #1a222d;
+  --color-clinical-border: #2a3544;
+  --color-clinical-muted: #8b9cb3;
+  --color-accent-green: #3d9a6e;
+  --color-accent-amber: #c9a227;
+  --color-accent-red: #c45c5c;
+  --color-accent-cyan: #4a9ead;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-clinical-bg);
+  color: #e8edf4;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.panel-glow {
+  box-shadow:
+    0 0 0 1px rgba(74, 158, 173, 0.08),
+    0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.sparkline {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+.alert-pulse {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+
+.timeline-connector {
+  background: linear-gradient(90deg, var(--color-clinical-border) 0%, var(--color-accent-cyan) 50%, var(--color-clinical-border) 100%);
+}

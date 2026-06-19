@@ -1,0 +1,82 @@
+[
+  {
+    "id": "vancomycin",
+    "display_name": "Vancomycin",
+    "class": "Glycopeptide",
+    "route": "IV",
+    "spectrum": { "gramPositive": 95, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
+    "warnings": ["nephrotoxicity"],
+    "renal_adjustment_required": true,
+    "dose_placeholder": "AUC-guided (15–20 mg·h/L)"
+  },
+  {
+    "id": "cefepime",
+    "display_name": "Cefepime",
+    "class": "4th-gen Cephalosporin",
+    "route": "IV",
+    "spectrum": { "gramPositive": 60, "gramNegative": 90, "anaerobes": 20, "pseudomonas": 85 },
+    "warnings": ["neurotoxicity"],
+    "renal_adjustment_required": true,
+    "dose_placeholder": "1g IV q12h (adjust CrCl <30)"
+  },
+  {
+    "id": "piperacillin_tazobactam",
+    "display_name": "Piperacillin-Tazobactam",
+    "class": "BL/BLI Combination",
+    "route": "IV",
+    "spectrum": { "gramPositive": 55, "gramNegative": 88, "anaerobes": 80, "pseudomonas": 82 },
+    "warnings": ["nephrotoxicity", "cdiff"],
+    "renal_adjustment_required": true,
+    "dose_placeholder": "3.375g IV q6h (adjust renal)"
+  },
+  {
+    "id": "cefazolin",
+    "display_name": "Cefazolin",
+    "class": "1st-gen Cephalosporin",
+    "route": "IV",
+    "spectrum": { "gramPositive": 92, "gramNegative": 35, "anaerobes": 10, "pseudomonas": 0 },
+    "warnings": [],
+    "renal_adjustment_required": true,
+    "dose_placeholder": "2g IV q8h"
+  },
+  {
+    "id": "daptomycin",
+    "display_name": "Daptomycin",
+    "class": "Cyclic Lipopeptide",
+    "route": "IV",
+    "spectrum": { "gramPositive": 95, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
+    "warnings": ["myopathy"],
+    "renal_adjustment_required": true,
+    "dose_placeholder": "6–8 mg/kg q24–48h"
+  },
+  {
+    "id": "meropenem",
+    "display_name": "Meropenem",
+    "class": "Carbapenem",
+    "route": "IV",
+    "spectrum": { "gramPositive": 70, "gramNegative": 95, "anaerobes": 90, "pseudomonas": 88 },
+    "warnings": ["stewardship"],
+    "renal_adjustment_required": true,
+    "dose_placeholder": "1g IV q8h"
+  },
+  {
+    "id": "linezolid",
+    "display_name": "Linezolid",
+    "class": "Oxazolidinone",
+    "route": "IV/PO",
+    "spectrum": { "gramPositive": 88, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
+    "warnings": ["myelosuppression", "bacteriostatic"],
+    "renal_adjustment_required": false,
+    "dose_placeholder": "600mg IV/PO q12h"
+  },
+  {
+    "id": "nafcillin",
+    "display_name": "Nafcillin",
+    "class": "Antistaphylococcal Penicillin",
+    "route": "IV",
+    "spectrum": { "gramPositive": 95, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
+    "warnings": ["hepatotoxicity"],
+    "renal_adjustment_required": false,
+    "dose_placeholder": "2g IV q4h"
+  }
+]
