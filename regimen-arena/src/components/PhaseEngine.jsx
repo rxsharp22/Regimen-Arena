@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import PhaseHeader from './PhaseHeader'
+import PatientStatusPanel from './PatientStatusPanel'
 import NewInformationPanel from './NewInformationPanel'
 import DecisionPoint from './DecisionPoint'
 import FeedbackPanel from './FeedbackPanel'
 import ContinueButton from './ContinueButton'
+import CriticalErrorOverlay from './CriticalErrorOverlay'
 import { getDecisionPoint, getDrugById } from '../utils/decisions'
 
 export default function PhaseEngine({
@@ -15,14 +17,36 @@ export default function PhaseEngine({
   onAdvance,
 }) {
   const phaseIndex = state.currentPhase
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [showCriticalOverlay, setShowCriticalOverlay] = useState(false)
+
   const decisionPoint = useMemo(
     () => getDecisionPoint(currentPhaseData?.decision_point_id),
     [currentPhaseData]
   )
 
-  const handleConfirm = (option, subOption) => {
-    onConfirmDecision(decisionPoint, option, phaseIndex, subOption)
-  }
+  useEffect(() => {
+    if (state.showFeedback && state.lastFeedback?.outcome === 'unsafe') {
+      setShowCriticalOverlay(true)
+    }
+  }, [state.showFeedback, state.lastFeedback])
+
+  useEffect(() => {
+    if (!state.showFeedback) {
+      setShowCriticalOverlay(false)
+    }
+  }, [state.showFeedback])
+
+  const handleConfirm = useCallback(
+    (option, subOption) => {
+      setIsProcessing(true)
+      setTimeout(() => {
+        onConfirmDecision(decisionPoint, option, phaseIndex, subOption)
+        setIsProcessing(false)
+      }, 1200)
+    },
+    [decisionPoint, onConfirmDecision, phaseIndex]
+  )
 
   const isFinalPhase = phaseIndex === totalPhases - 1
 
@@ -32,6 +56,13 @@ export default function PhaseEngine({
         phase={currentPhaseData}
         currentIndex={phaseIndex}
         totalPhases={totalPhases}
+        score={state.score}
+        scoreMaxes={state.scoreMaxes}
+      />
+
+      <PatientStatusPanel
+        phaseId={currentPhaseData.id}
+        conditionalEvents={state.conditionalEvents}
       />
 
       <NewInformationPanel
@@ -57,7 +88,8 @@ export default function PhaseEngine({
         decisionPoint={decisionPoint}
         activeDrugs={state.activeDrugs}
         onConfirm={handleConfirm}
-        disabled={state.showFeedback}
+        disabled={state.showFeedback || isProcessing}
+        isProcessing={isProcessing}
       />
 
       <FeedbackPanel feedback={state.showFeedback ? state.lastFeedback : null} />
@@ -66,6 +98,13 @@ export default function PhaseEngine({
         <div className="mt-6 flex justify-end">
           <ContinueButton onClick={onAdvance} isFinal={isFinalPhase} />
         </div>
+      )}
+
+      {showCriticalOverlay && (
+        <CriticalErrorOverlay
+          feedback={state.lastFeedback}
+          onDismiss={() => setShowCriticalOverlay(false)}
+        />
       )}
     </div>
   )

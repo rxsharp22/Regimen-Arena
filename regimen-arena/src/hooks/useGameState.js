@@ -17,7 +17,7 @@ export const initialGameState = {
   scoreMaxes: { ...SCORE_MAXES },
   feedbackLog: [],
   conditionalEvents: [],
-  gameStatus: 'intro',
+  gameStatus: 'landing',
   showFeedback: false,
   outcomeTier: null,
   lastFeedback: null,
@@ -25,6 +25,9 @@ export const initialGameState = {
 
 function gameReducer(state, action) {
   switch (action.type) {
+    case 'BEGIN_INTRO':
+      return { ...state, gameStatus: 'intro' }
+
     case 'BEGIN_SCENARIO':
       return { ...state, gameStatus: 'active', showFeedback: false, lastFeedback: null }
 
@@ -120,6 +123,7 @@ function gameReducer(state, action) {
 export function useGameState() {
   const [state, dispatch] = useReducer(gameReducer, initialGameState)
 
+  const beginIntro = useCallback(() => dispatch({ type: 'BEGIN_INTRO' }), [])
   const beginScenario = useCallback(() => dispatch({ type: 'BEGIN_SCENARIO' }), [])
   const advancePhase = useCallback(() => dispatch({ type: 'ADVANCE_PHASE' }), [])
   const resetGame = useCallback(() => dispatch({ type: 'RESET' }), [])
@@ -134,6 +138,7 @@ export function useGameState() {
   return {
     state,
     dispatch,
+    beginIntro,
     beginScenario,
     advancePhase,
     resetGame,

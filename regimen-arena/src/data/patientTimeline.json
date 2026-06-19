@@ -1,0 +1,32 @@
+{
+  "phase_01": {
+    "stability": "critical",
+    "vitals": { "temp_c": 38.9, "hr": 112, "bp": "102/68", "scr": 1.9, "wbc": 18.4 },
+    "trend": { "hr": "up", "bp": "down", "scr": "up", "wbc": "up" },
+    "status_text": "Febrile, tachycardic, hypotensive. Cultures pending."
+  },
+  "phase_02": {
+    "stability": "critical",
+    "vitals": { "temp_c": 38.5, "hr": 104, "bp": "108/72", "scr": 2.3, "wbc": 16.1 },
+    "trend": { "hr": "down", "bp": "up", "scr": "up", "wbc": "down" },
+    "status_text": "Renal function worsening. MRI confirms osteomyelitis."
+  },
+  "phase_03": {
+    "stability": "guarded",
+    "vitals": { "temp_c": 38.1, "hr": 96, "bp": "114/74", "scr": 2.1, "wbc": 13.2 },
+    "trend": { "hr": "down", "bp": "up", "scr": "down", "wbc": "down" },
+    "status_text": "Culture result: MSSA. Mild improvement. De-escalation indicated."
+  },
+  "phase_04": {
+    "stability": "improving",
+    "vitals": { "temp_c": 37.4, "hr": 88, "bp": "122/76", "scr": 1.7, "wbc": 10.1 },
+    "trend": { "hr": "down", "bp": "up", "scr": "down", "wbc": "down" },
+    "status_text": "Afebrile. Bacteremia cleared. Debridement complete."
+  },
+  "phase_05": {
+    "stability": "stable",
+    "vitals": { "temp_c": 37.1, "hr": 82, "bp": "126/78", "scr": 1.6, "wbc": 8.9 },
+    "trend": { "hr": "stable", "bp": "stable", "scr": "down", "wbc": "down" },
+    "status_text": "Medically stable. Ready for discharge and OPAT planning."
+  }
+}

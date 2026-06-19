@@ -1,5 +1,6 @@
 import scenario from './data/scenario.json'
 import patient from './data/patient.json'
+import LandingPage from './components/LandingPage'
 import ScenarioIntro from './components/ScenarioIntro'
 import PhaseEngine from './components/PhaseEngine'
 import ScoreScreen from './components/ScoreScreen'
@@ -8,6 +9,7 @@ import { useGameState } from './hooks/useGameState'
 export default function App() {
   const {
     state,
+    beginIntro,
     beginScenario,
     advancePhase,
     resetGame,
@@ -34,6 +36,10 @@ export default function App() {
       </header>
 
       <main className="flex-1 p-4 md:p-8">
+        {state.gameStatus === 'landing' && (
+          <LandingPage onEnter={beginIntro} />
+        )}
+
         {state.gameStatus === 'intro' && (
           <ScenarioIntro scenario={scenario} patient={patient} onBegin={beginScenario} />
         )}

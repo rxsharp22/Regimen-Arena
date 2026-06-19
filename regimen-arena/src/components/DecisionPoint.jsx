@@ -8,6 +8,7 @@ export default function DecisionPoint({
   activeDrugs,
   onConfirm,
   disabled,
+  isProcessing = false,
 }) {
   const [selectedId, setSelectedId] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
@@ -112,6 +113,7 @@ export default function DecisionPoint({
         <div className="pt-2">
           <ConfirmButton
             disabled={!canConfirm}
+            loading={isProcessing}
             onClick={handleConfirm}
             label={pendingOral ? 'Confirm Oral Agent' : 'Confirm Selection'}
           />
