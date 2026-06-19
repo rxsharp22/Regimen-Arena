@@ -2,6 +2,8 @@ import { useReducer, useCallback } from 'react'
 import phases from '../data/phases.json'
 import { INITIAL_SCORE, SCORE_MAXES } from '../utils/scoring'
 import { resolveConditionalEvents } from '../utils/conditionalEvents'
+import { buildDecisionEffects, finalizeGame } from '../utils/gameActions'
+import { applyScoreModifiers } from '../utils/scoring'
 
 export const initialGameState = {
   scenarioId: 'scenario_01',
@@ -18,54 +20,76 @@ export const initialGameState = {
   gameStatus: 'intro',
   showFeedback: false,
   outcomeTier: null,
+  lastFeedback: null,
 }
 
 function gameReducer(state, action) {
   switch (action.type) {
     case 'BEGIN_SCENARIO':
-      return { ...state, gameStatus: 'active' }
+      return { ...state, gameStatus: 'active', showFeedback: false, lastFeedback: null }
 
-    case 'SET_DECISION':
-      return {
-        ...state,
-        decisions: { ...state.decisions, [action.decisionId]: action.optionId },
+    case 'CONFIRM_DECISION': {
+      const { decisionPoint, option, phaseIndex, subOption } = action
+      let effects = buildDecisionEffects(state, decisionPoint, option, phaseIndex)
+
+      if (subOption?.score_modifiers) {
+        effects.score = applyScoreModifiers(effects.score, subOption.score_modifiers)
+      }
+      if (subOption?.flags) {
+        effects.activeFlags = [...new Set([...effects.activeFlags, ...subOption.flags])]
       }
 
-    case 'ADD_FLAGS':
-      return {
-        ...state,
-        activeFlags: [...new Set([...state.activeFlags, ...action.flags])],
+      const feedbackEntry = {
+        phase: phaseIndex,
+        phaseLabel: phases[phaseIndex]?.label,
+        decisionId: decisionPoint.id,
+        optionLabel: subOption
+          ? `${effects.optionLabel} → ${subOption.label}`
+          : effects.optionLabel,
+        outcome: subOption?.outcome ?? effects.outcome,
+        feedback: subOption
+          ? `${effects.feedback}\n\nOral step-down: ${subOption.feedback}`
+          : effects.feedback,
       }
 
-    case 'ADD_DRUGS':
       return {
         ...state,
-        activeDrugs: [...new Set([...state.activeDrugs, ...action.drugs])],
-      }
-
-    case 'ADD_CRITICAL_FLAG':
-      return {
-        ...state,
-        criticalFlags: [...new Set([...state.criticalFlags, action.flagId])],
-      }
-
-    case 'UPDATE_SCORE':
-      return { ...state, score: action.score }
-
-    case 'LOG_FEEDBACK':
-      return {
-        ...state,
-        feedbackLog: [...state.feedbackLog, action.entry],
+        decisions: {
+          ...state.decisions,
+          [decisionPoint.id]: option.id ?? option.selectedIds,
+          ...(subOption ? { [decisionPoint.oral_stepdown_sub_decision?.id]: subOption.id } : {}),
+        },
+        activeFlags: effects.activeFlags,
+        activeDrugs: effects.activeDrugs,
+        criticalFlags: effects.criticalFlags,
+        score: effects.score,
+        feedbackLog: [...state.feedbackLog, feedbackEntry],
         showFeedback: true,
+        lastFeedback: {
+          ...feedbackEntry,
+          option,
+          subOption,
+          allergyCallout: decisionPoint.allergy_callout,
+          showAllergyCallout:
+            decisionPoint.allergy_callout &&
+            (option.allergy_callout ||
+              decisionPoint.allergy_callout.trigger_options?.includes(option.id)),
+        },
       }
-
-    case 'SET_CONDITIONAL_EVENTS':
-      return { ...state, conditionalEvents: action.events }
+    }
 
     case 'ADVANCE_PHASE': {
       const next = state.currentPhase + 1
+
       if (next >= phases.length) {
-        return { ...state, gameStatus: 'complete', currentPhase: next - 1 }
+        const tier = finalizeGame(state)
+        return {
+          ...state,
+          gameStatus: 'complete',
+          outcomeTier: tier,
+          showFeedback: false,
+          lastFeedback: null,
+        }
       }
 
       const { events, scorePenalty } = resolveConditionalEvents(
@@ -79,16 +103,14 @@ function gameReducer(state, action) {
         currentPhase: next,
         phaseHistory: [...state.phaseHistory, phases[state.currentPhase].id],
         conditionalEvents: events,
-        score: scorePenalty ? { ...state.score, ...scorePenalty } : state.score,
+        score: scorePenalty ? applyScoreModifiers(state.score, scorePenalty) : state.score,
         showFeedback: false,
+        lastFeedback: null,
       }
     }
 
-    case 'SET_OUTCOME_TIER':
-      return { ...state, outcomeTier: action.tier }
-
     case 'RESET':
-      return initialGameState
+      return { ...initialGameState }
 
     default:
       return state
@@ -102,13 +124,22 @@ export function useGameState() {
   const advancePhase = useCallback(() => dispatch({ type: 'ADVANCE_PHASE' }), [])
   const resetGame = useCallback(() => dispatch({ type: 'RESET' }), [])
 
+  const confirmDecision = useCallback(
+    (decisionPoint, option, phaseIndex, subOption = null) => {
+      dispatch({ type: 'CONFIRM_DECISION', decisionPoint, option, phaseIndex, subOption })
+    },
+    []
+  )
+
   return {
     state,
     dispatch,
     beginScenario,
     advancePhase,
     resetGame,
+    confirmDecision,
     totalPhases: phases.length,
     currentPhaseData: phases[state.currentPhase] ?? null,
+    phases,
   }
 }

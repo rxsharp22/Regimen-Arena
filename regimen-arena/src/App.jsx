@@ -1,10 +1,21 @@
 import scenario from './data/scenario.json'
 import patient from './data/patient.json'
 import ScenarioIntro from './components/ScenarioIntro'
+import PhaseEngine from './components/PhaseEngine'
+import ScoreScreen from './components/ScoreScreen'
 import { useGameState } from './hooks/useGameState'
 
 export default function App() {
-  const { state, beginScenario } = useGameState()
+  const {
+    state,
+    beginScenario,
+    advancePhase,
+    resetGame,
+    confirmDecision,
+    currentPhaseData,
+    totalPhases,
+    phases,
+  } = useGameState()
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -16,19 +27,30 @@ export default function App() {
           <div>
             <h1 className="text-base font-bold tracking-tight">Regimen Arena</h1>
             <p className="text-[10px] text-[#8b9cb3] uppercase tracking-widest">
-              Antimicrobial Stewardship Simulation
+              {scenario.title} — Antimicrobial Stewardship Simulation
             </p>
           </div>
         </div>
       </header>
 
       <main className="flex-1 p-4 md:p-8">
-        {state.gameStatus === 'intro' ? (
+        {state.gameStatus === 'intro' && (
           <ScenarioIntro scenario={scenario} patient={patient} onBegin={beginScenario} />
-        ) : (
-          <div className="max-w-4xl mx-auto text-center py-16 text-[#8b9cb3]">
-            <p className="text-sm">Phase engine coming next.</p>
-          </div>
+        )}
+
+        {state.gameStatus === 'active' && currentPhaseData && (
+          <PhaseEngine
+            state={state}
+            phases={phases}
+            currentPhaseData={currentPhaseData}
+            totalPhases={totalPhases}
+            onConfirmDecision={confirmDecision}
+            onAdvance={advancePhase}
+          />
+        )}
+
+        {state.gameStatus === 'complete' && (
+          <ScoreScreen state={state} onRestart={resetGame} />
         )}
       </main>
     </div>

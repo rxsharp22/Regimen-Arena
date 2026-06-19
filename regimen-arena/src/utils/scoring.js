@@ -1,4 +1,4 @@
-const SCORE_DIMENSIONS = [
+export const SCORE_DIMENSIONS = [
   'coverage',
   'safety',
   'stewardship',
