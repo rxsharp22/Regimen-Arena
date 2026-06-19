@@ -4,79 +4,120 @@
     "display_name": "Vancomycin",
     "class": "Glycopeptide",
     "route": "IV",
-    "spectrum": { "gramPositive": 95, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
-    "warnings": ["nephrotoxicity"],
+    "spectrum_tags": ["MRSA", "MSSA", "Gram+", "Enterococcus"],
+    "mechanism_short": "Cell wall inhibition — binds D-Ala-D-Ala",
     "renal_adjustment_required": true,
-    "dose_placeholder": "AUC-guided (15–20 mg·h/L)"
-  },
-  {
-    "id": "cefepime",
-    "display_name": "Cefepime",
-    "class": "4th-gen Cephalosporin",
-    "route": "IV",
-    "spectrum": { "gramPositive": 60, "gramNegative": 90, "anaerobes": 20, "pseudomonas": 85 },
-    "warnings": ["neurotoxicity"],
-    "renal_adjustment_required": true,
-    "dose_placeholder": "1g IV q12h (adjust CrCl <30)"
-  },
-  {
-    "id": "piperacillin_tazobactam",
-    "display_name": "Piperacillin-Tazobactam",
-    "class": "BL/BLI Combination",
-    "route": "IV",
-    "spectrum": { "gramPositive": 55, "gramNegative": 88, "anaerobes": 80, "pseudomonas": 82 },
-    "warnings": ["nephrotoxicity", "cdiff"],
-    "renal_adjustment_required": true,
-    "dose_placeholder": "3.375g IV q6h (adjust renal)"
+    "toxicity_flags": ["Nephrotoxicity", "Infusion reaction"],
+    "monitoring": ["AUC/MIC", "SCr/BMP"],
+    "stewardship_note": "Inferior to beta-lactams for MSSA. De-escalate when cultures allow.",
+    "interaction_flags": ["vanco+pip-tazo nephrotoxicity"]
   },
   {
     "id": "cefazolin",
     "display_name": "Cefazolin",
     "class": "1st-gen Cephalosporin",
     "route": "IV",
-    "spectrum": { "gramPositive": 92, "gramNegative": 35, "anaerobes": 10, "pseudomonas": 0 },
-    "warnings": [],
+    "spectrum_tags": ["MSSA", "Gram+", "Limited GN"],
+    "mechanism_short": "Cell wall inhibition — beta-lactam",
     "renal_adjustment_required": true,
-    "dose_placeholder": "2g IV q8h"
+    "toxicity_flags": ["Low PCN cross-reactivity"],
+    "monitoring": ["BMP", "Clinical response"],
+    "stewardship_note": "Preferred definitive agent for MSSA bacteremia. Low cross-reactivity with PCN allergy."
+  },
+  {
+    "id": "piperacillin_tazobactam",
+    "display_name": "Piperacillin-Tazobactam",
+    "class": "BL/BLI Combination",
+    "route": "IV",
+    "spectrum_tags": ["Gram-", "Pseudomonas", "Anaerobes", "Gram+"],
+    "mechanism_short": "Cell wall inhibition + beta-lactamase inhibition",
+    "renal_adjustment_required": true,
+    "toxicity_flags": ["Nephrotoxicity with vancomycin"],
+    "monitoring": ["BMP", "Renal function"],
+    "stewardship_note": "Broad spectrum. Avoid combining with vancomycin when nephrotoxicity risk present."
+  },
+  {
+    "id": "cefepime",
+    "display_name": "Cefepime",
+    "class": "4th-gen Cephalosporin",
+    "route": "IV",
+    "spectrum_tags": ["Gram-", "Pseudomonas", "Gram+"],
+    "mechanism_short": "Cell wall inhibition — beta-lactam",
+    "renal_adjustment_required": true,
+    "toxicity_flags": ["Neurotoxicity in renal failure"],
+    "monitoring": ["BMP", "Neuro status"],
+    "stewardship_note": "Dose-adjust for CrCl <30. Risk of encephalopathy if not adjusted."
   },
   {
     "id": "daptomycin",
     "display_name": "Daptomycin",
     "class": "Cyclic Lipopeptide",
     "route": "IV",
-    "spectrum": { "gramPositive": 95, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
-    "warnings": ["myopathy"],
+    "spectrum_tags": ["MRSA", "MSSA", "VRE", "Gram+"],
+    "mechanism_short": "Calcium-dependent membrane depolarization",
     "renal_adjustment_required": true,
-    "dose_placeholder": "6–8 mg/kg q24–48h"
-  },
-  {
-    "id": "meropenem",
-    "display_name": "Meropenem",
-    "class": "Carbapenem",
-    "route": "IV",
-    "spectrum": { "gramPositive": 70, "gramNegative": 95, "anaerobes": 90, "pseudomonas": 88 },
-    "warnings": ["stewardship"],
-    "renal_adjustment_required": true,
-    "dose_placeholder": "1g IV q8h"
-  },
-  {
-    "id": "linezolid",
-    "display_name": "Linezolid",
-    "class": "Oxazolidinone",
-    "route": "IV/PO",
-    "spectrum": { "gramPositive": 88, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
-    "warnings": ["myelosuppression", "bacteriostatic"],
-    "renal_adjustment_required": false,
-    "dose_placeholder": "600mg IV/PO q12h"
+    "toxicity_flags": ["Myopathy", "CK elevation"],
+    "monitoring": ["CK weekly", "BMP"],
+    "stewardship_note": "Do NOT use for pulmonary infections. Baseline CK required. Dose q48h when CrCl <30."
   },
   {
     "id": "nafcillin",
     "display_name": "Nafcillin",
     "class": "Antistaphylococcal Penicillin",
     "route": "IV",
-    "spectrum": { "gramPositive": 95, "gramNegative": 0, "anaerobes": 0, "pseudomonas": 0 },
-    "warnings": ["hepatotoxicity"],
+    "spectrum_tags": ["MSSA", "Gram+"],
+    "mechanism_short": "Cell wall inhibition — penicillinase-resistant beta-lactam",
     "renal_adjustment_required": false,
-    "dose_placeholder": "2g IV q4h"
+    "toxicity_flags": ["Hepatotoxicity", "Thrombophlebitis", "Interstitial nephritis"],
+    "monitoring": ["LFTs", "IV site"],
+    "stewardship_note": "Active for MSSA bacteremia. More adverse effects than cefazolin. Not preferred for outpatient OPAT."
+  },
+  {
+    "id": "oxacillin",
+    "display_name": "Oxacillin",
+    "class": "Antistaphylococcal Penicillin",
+    "route": "IV",
+    "spectrum_tags": ["MSSA", "Gram+"],
+    "mechanism_short": "Cell wall inhibition — penicillinase-resistant beta-lactam",
+    "renal_adjustment_required": false,
+    "toxicity_flags": ["Hepatotoxicity", "Thrombophlebitis"],
+    "monitoring": ["LFTs", "IV site"],
+    "stewardship_note": "Equivalent to nafcillin for MSSA. Same caveats re: adverse effects and outpatient use."
+  },
+  {
+    "id": "linezolid",
+    "display_name": "Linezolid",
+    "class": "Oxazolidinone",
+    "route": "IV/PO",
+    "spectrum_tags": ["MRSA", "VRE", "Gram+"],
+    "mechanism_short": "Protein synthesis inhibition — 50S ribosomal subunit",
+    "renal_adjustment_required": false,
+    "toxicity_flags": ["Myelosuppression", "Serotonin syndrome", "Peripheral neuropathy"],
+    "monitoring": ["CBC weekly", "Serotonin drug interactions"],
+    "stewardship_note": "Bacteriostatic. NOT appropriate for Staphylococcal bacteremia. Reserve for documented resistance or intolerance."
+  },
+  {
+    "id": "meropenem",
+    "display_name": "Meropenem",
+    "class": "Carbapenem",
+    "route": "IV",
+    "spectrum_tags": ["Gram-", "ESBL", "Pseudomonas", "Anaerobes", "Gram+"],
+    "mechanism_short": "Cell wall inhibition — broad-spectrum beta-lactam",
+    "renal_adjustment_required": true,
+    "toxicity_flags": ["Seizure risk at high dose"],
+    "monitoring": ["BMP"],
+    "stewardship_note": "Reserve for MDR gram-negatives, ESBL, or CRE. Empiric use without risk factors is a stewardship concern."
+  },
+  {
+    "id": "tmp_smx",
+    "display_name": "TMP-SMX",
+    "class": "Folate Synthesis Inhibitor",
+    "route": "IV/PO",
+    "spectrum_tags": ["MSSA", "Gram+", "Some GN", "PCP"],
+    "mechanism_short": "Sequential folate pathway blockade",
+    "renal_adjustment_required": true,
+    "toxicity_flags": ["Hyperkalemia", "SCr elevation (tubular effect)", "Myelosuppression"],
+    "monitoring": ["BMP", "CBC"],
+    "stewardship_note": "Good oral step-down option for susceptible MSSA osteomyelitis. Not appropriate as primary therapy for Staph bacteremia."
   }
 ]

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "phase_01",
+    "label": "T=0 — Admission",
+    "narrative": "The patient arrives to the ED with worsening right foot pain, purulent drainage, and visible bone at the wound base. Blood cultures have been drawn. Empiric antimicrobial therapy must be started before culture results are available.",
+    "new_information": [],
+    "decision_point_id": "dp_01_empiric_regimen"
+  },
+  {
+    "id": "phase_02",
+    "label": "T=12 Hours",
+    "narrative": "MRI confirms osteomyelitis of the 5th metatarsal head with an adjacent soft tissue abscess. Renal function has worsened. Podiatry has been consulted and is scheduling debridement.",
+    "new_information": [
+      {
+        "type": "imaging",
+        "content": "MRI right foot: osteomyelitis of 5th metatarsal head with adjacent soft tissue abscess confirmed."
+      },
+      {
+        "type": "lab",
+        "content": "SCr now 2.3 (up from 1.9 on admission). Estimated CrCl now approximately 22 mL/min."
+      },
+      {
+        "type": "consult",
+        "content": "Podiatry consulted. Debridement scheduled."
+      }
+    ],
+    "decision_point_id": "dp_02_dose_reassessment"
+  },
+  {
+    "id": "phase_03",
+    "label": "T=36–48 Hours — Culture Reveal",
+    "narrative": "Blood culture results have finalized. The organism has been identified and susceptibilities are available.",
+    "new_information": [
+      {
+        "type": "microbiology",
+        "organism": "Staphylococcus aureus",
+        "susceptibilities": {
+          "Oxacillin": "Susceptible",
+          "Cefazolin": "Susceptible",
+          "Clindamycin": "Susceptible",
+          "TMP-SMX": "Susceptible",
+          "Doxycycline": "Susceptible",
+          "Vancomycin": "Susceptible"
+        },
+        "interpretation": "MSSA — Methicillin-Susceptible Staphylococcus aureus",
+        "source": "Blood cultures ×2 (both bottles positive)"
+      }
+    ],
+    "decision_point_id": "dp_03_deescalation"
+  },
+  {
+    "id": "phase_04",
+    "label": "T=5–7 Days",
+    "narrative": "The patient is showing clinical improvement. Repeat blood cultures are negative. Surgical debridement of the 5th metatarsal head has been completed and the bone biopsy has returned. Renal function is trending back toward baseline.",
+    "new_information": [
+      {
+        "type": "microbiology",
+        "content": "Repeat blood cultures ×2 at 72 hours: No growth."
+      },
+      {
+        "type": "procedure",
+        "content": "Surgical debridement completed. Bone biopsy result: MSSA, same susceptibility profile."
+      },
+      {
+        "type": "lab",
+        "content": "SCr 1.7, trending toward baseline. CrCl improving."
+      }
+    ],
+    "decision_point_id": "dp_04_duration_and_transition"
+  },
+  {
+    "id": "phase_05",
+    "label": "Discharge Planning",
+    "narrative": "The patient is medically stable and ready for discharge. An OPAT or oral step-down plan is in place. Build a monitoring plan for the outpatient course.",
+    "new_information": [],
+    "decision_point_id": "dp_05_monitoring_plan"
+  }
+]

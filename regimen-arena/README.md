@@ -1,37 +1,35 @@
 # Regimen Arena
 
-A clinical decision simulation cockpit for antimicrobial stewardship education. Scenario 01: **Bone Deep** — diabetic foot osteomyelitis with bacteremia.
+Clinical decision simulation for antimicrobial stewardship. Scenario 01: **Bone Deep**.
 
 ## Quick Start
 
 ```bash
-cd regimen-arena
 npm install
 npm run dev
 ```
 
-Open the local URL shown in the terminal (typically `http://localhost:5173`).
+## Project Structure
 
-## Build
-
-```bash
-npm run build
-npm run preview
 ```
-
-## UI Overview
-
-Three-panel clinical cockpit layout:
-
-- **Patient Status** (left) — vitals, lab sparklines, severity badge, active alerts
-- **Clinical Timeline** (center) — T0 → T12 → T36 → Outcome with inline expanding event cards
-- **Regimen Control** (right) — antibiotic cards with spectrum bars, warnings, culture HUD, stewardship feedback
-
-## Tech Stack
-
-- React (functional components + hooks)
-- Tailwind CSS v4
-- Local JSON scenario data — no backend
+src/
+  data/
+    patient.json           # Section 9 — patient demographics, vitals, labs
+    scenario.json          # Section 10 — scenario metadata
+    phases.json            # Section 10 — phase timeline
+    decisionPoints.json    # Section 11 — all decision points
+    drugs.json             # Section 12 — drug reference
+    conditionalEvents.json # Section 8 — triggered events
+  components/
+    ScenarioIntro.jsx      # Patient card + Begin button
+    PhaseEngine.jsx        # (stub) Phase gameplay loop
+    ...
+  hooks/
+    useGameState.js        # Game state reducer
+  utils/
+    scoring.js
+    conditionalEvents.js
+```
 
 ## Disclaimer
 

@@ -9,6 +9,7 @@
     "Hypertension",
     "CKD Stage 3b (baseline CrCl ~32 mL/min)"
   ],
+  "home_meds": ["metformin (held)", "amlodipine", "lisinopril (held for AKI)"],
   "allergies": [
     {
       "allergen": "Penicillin",
@@ -17,5 +18,21 @@
       "risk_level": "low"
     }
   ],
+  "vitals": {
+    "temp_c": 38.9,
+    "hr": 104,
+    "bp": "114/70",
+    "rr": 18,
+    "spo2_pct": 97
+  },
+  "labs": {
+    "wbc": 14.8,
+    "scr": 1.9,
+    "crcl_estimated": 32,
+    "glucose": 312,
+    "lactate": 1.8,
+    "crp": "elevated"
+  },
+  "imaging": "Plain film right foot: periosteal reaction at 5th metatarsal, concerning for osteomyelitis. MRI pending.",
   "presentation": "2 days of worsening right foot pain, redness, and drainage from a chronic plantar wound. Exam: 2 cm plantar wound with purulent drainage, 6 cm surrounding erythema, bony structures visible at wound base."
 }

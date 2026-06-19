@@ -1,0 +1,432 @@
+{
+  "dp_01_empiric_regimen": {
+    "id": "dp_01_empiric_regimen",
+    "prompt": "Choose empiric antimicrobial therapy. Blood cultures are pending. Consider spectrum, renal function, and allergy history.",
+    "type": "single_select",
+    "options": [
+      {
+        "id": "opt_vanco_pip",
+        "label": "Vancomycin + Piperacillin-Tazobactam",
+        "drugs": ["vancomycin", "piperacillin_tazobactam"],
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 8, "safety": 5, "stewardship": 6, "dosing": 7 },
+        "flags": ["nephrotoxicity_risk", "vanco_pip_interaction"],
+        "feedback": "Broad empiric coverage for MRSA and gram-negatives. However, vancomycin + piperacillin-tazobactam carries a well-characterized nephrotoxicity signal — particularly relevant here given baseline CKD and worsening AKI. This combination should be used with caution. Vancomycin + cefepime avoids this interaction and is generally preferred when both agents are otherwise appropriate."
+      },
+      {
+        "id": "opt_vanco_cefepime",
+        "label": "Vancomycin + Cefepime",
+        "drugs": ["vancomycin", "cefepime"],
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 8, "safety": 8, "stewardship": 7, "dosing": 7 },
+        "flags": [],
+        "feedback": "Good empiric choice. Vancomycin covers MRSA and gram-positives. Cefepime provides broad gram-negative and Pseudomonas coverage. This combination avoids the nephrotoxicity concern of vancomycin + piperacillin-tazobactam. Cefepime requires renal dose adjustment at CrCl ~30 — ensure this is accounted for."
+      },
+      {
+        "id": "opt_vanco_mono",
+        "label": "Vancomycin Monotherapy",
+        "drugs": ["vancomycin"],
+        "outcome": "acceptable",
+        "score_modifiers": { "coverage": 6, "safety": 7, "stewardship": 7, "dosing": 7 },
+        "flags": ["incomplete_gram_negative_coverage"],
+        "feedback": "Vancomycin provides MRSA and gram-positive coverage. However, diabetic foot infections are frequently polymicrobial and gram-negative coverage is typically recommended empirically for this presentation. Monotherapy is defensible if the clinical picture strongly suggests a gram-positive-only source, but incomplete gram-negative coverage is a gap in this case."
+      },
+      {
+        "id": "opt_dapto_cefepime",
+        "label": "Daptomycin + Cefepime",
+        "drugs": ["daptomycin", "cefepime"],
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 8, "safety": 7, "stewardship": 7, "dosing": 7 },
+        "flags": ["ck_monitoring_required"],
+        "feedback": "Daptomycin is a valid alternative to vancomycin for gram-positive bacteremia coverage. Important reminder: daptomycin is inactivated by pulmonary surfactant and cannot be used for pneumonia. Obtain a baseline CK and plan for weekly monitoring. Cefepime provides gram-negative coverage. This is a reasonable empiric regimen."
+      },
+      {
+        "id": "opt_cefazolin_mono",
+        "label": "Cefazolin Monotherapy",
+        "drugs": ["cefazolin"],
+        "outcome": "suboptimal",
+        "score_modifiers": { "coverage": 3, "safety": 9, "stewardship": 5, "dosing": 8 },
+        "flags": ["no_mrsa_coverage"],
+        "feedback": "Cefazolin lacks MRSA coverage. In a patient with bacteremia and suspected osteomyelitis where MRSA remains a real possibility empirically, this is insufficient. Cefazolin is an excellent targeted agent once MSSA is confirmed — and it will re-emerge as the optimal choice later — but it should not be used empirically here without MRSA coverage."
+      },
+      {
+        "id": "opt_meropenem_vanco",
+        "label": "Meropenem + Vancomycin",
+        "drugs": ["meropenem", "vancomycin"],
+        "outcome": "excessive_spectrum",
+        "score_modifiers": { "coverage": 9, "safety": 6, "stewardship": 2, "dosing": 6 },
+        "flags": ["carbapenem_stewardship_alert"],
+        "feedback": "Carbapenem therapy empirically is excessive without documented prior ESBL, MDR gram-negative history, or significant healthcare-associated risk factors for resistant organisms. This patient does not have those risk factors on record. Carbapenem use should be reserved for cases with known resistant organism risk. Using meropenem here represents a stewardship failure — unnecessarily broad, drives resistance, and no clinical benefit over narrower alternatives."
+      },
+      {
+        "id": "opt_linezolid_mono",
+        "label": "Linezolid Monotherapy",
+        "drugs": ["linezolid"],
+        "outcome": "suboptimal",
+        "score_modifiers": { "coverage": 4, "safety": 5, "stewardship": 3, "dosing": 7 },
+        "flags": ["bacteriostatic_for_bacteremia", "no_gram_negative_coverage"],
+        "feedback": "Linezolid covers gram-positives including MRSA but provides no gram-negative coverage. More critically, linezolid is bacteriostatic and lacks robust data supporting use for Staphylococcal bacteremia. This is not appropriate monotherapy for empiric bacteremia with an unidentified source — both the coverage gap and the bacteriostatic concern are significant problems here."
+      }
+    ]
+  },
+  "dp_02_dose_reassessment": {
+    "id": "dp_02_dose_reassessment",
+    "prompt": "Renal function has worsened. SCr is 2.3, estimated CrCl now approximately 22 mL/min. Review your current regimen and adjust dosing as needed.",
+    "type": "single_select",
+    "note": "Options are filtered by applicable_if — only show options relevant to drugs currently active from DP1.",
+    "options": [
+      {
+        "id": "dp02_vanco_extend_interval",
+        "label": "Extend vancomycin dosing interval and recheck AUC before next dose",
+        "applicable_if": ["vancomycin"],
+        "outcome": "optimal",
+        "score_modifiers": { "safety": 10, "dosing": 10 },
+        "flags": [],
+        "feedback": "Correct response to worsening AKI with vancomycin on board. AUC-guided dosing is the preferred vancomycin monitoring strategy per current consensus guidelines. Extending the interval and rechecking AUC before the next dose prevents accumulation and reduces nephrotoxicity risk. This is careful and appropriate management of a nephrotoxic agent in a deteriorating renal situation."
+      },
+      {
+        "id": "dp02_vanco_hold_recheck",
+        "label": "Hold vancomycin dose, recheck SCr and AUC in 12–24 hours before redosing",
+        "applicable_if": ["vancomycin"],
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "dosing": 8 },
+        "flags": [],
+        "feedback": "Holding vancomycin to allow renal recovery and recheck before redosing is clinically reasonable, particularly if AUC is elevated. The tradeoff is a period of reduced gram-positive coverage. Acceptable if the patient is not in rapid clinical decline and you plan to re-dose promptly once levels are in an appropriate range."
+      },
+      {
+        "id": "dp02_switch_dapto",
+        "label": "Discontinue vancomycin, transition to daptomycin given worsening AKI",
+        "applicable_if": ["vancomycin"],
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "dosing": 8, "stewardship": 7 },
+        "flags": ["ck_monitoring_required"],
+        "feedback": "Transitioning away from vancomycin to daptomycin in the setting of worsening AKI is clinically defensible. Important: daptomycin also requires renal dose adjustment when CrCl falls below 30 — the interval extends to every 48 hours. This must be accounted for. Obtain baseline CK and plan for weekly monitoring. The organism is still unknown at this point, so gram-positive coverage is maintained with this switch."
+      },
+      {
+        "id": "dp02_reduce_cefepime",
+        "label": "Reduce cefepime dose for CrCl ~22 mL/min",
+        "applicable_if": ["cefepime"],
+        "outcome": "optimal",
+        "score_modifiers": { "safety": 10, "dosing": 10 },
+        "flags": [],
+        "feedback": "Correct. Cefepime requires dose reduction in renal impairment. At CrCl below 30, standard cefepime dosing risks accumulation and neurotoxicity — including encephalopathy and non-convulsive seizures. Reducing to 1g IV q12h (or per institutional protocol) is appropriate and is an important adjustment that is easy to overlook."
+      },
+      {
+        "id": "dp02_reduce_pip_tazo",
+        "label": "Reduce piperacillin-tazobactam dose for worsening renal function",
+        "applicable_if": ["piperacillin_tazobactam"],
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 7, "dosing": 8 },
+        "flags": [],
+        "feedback": "Dose adjustment for piperacillin-tazobactam is warranted at CrCl below 40. The more pressing concern is that this patient may be on vancomycin + pip-tazo simultaneously in the setting of worsening AKI — a combination that compounds nephrotoxicity risk significantly. If both are running, this is the moment to reconsider the combination rather than simply adjusting pip-tazo dosing alone."
+      },
+      {
+        "id": "dp02_dapto_dose_adjust",
+        "label": "Adjust daptomycin to every 48 hours given CrCl now below 30",
+        "applicable_if": ["daptomycin"],
+        "outcome": "optimal",
+        "score_modifiers": { "safety": 10, "dosing": 10 },
+        "flags": [],
+        "feedback": "Correct. Daptomycin standard dosing is every 24 hours, but when CrCl falls below 30, the interval should be extended to every 48 hours. This is an important adjustment to prevent accumulation and reduce the risk of myopathy. Continue CK monitoring — risk increases with daptomycin exposure at reduced clearance."
+      },
+      {
+        "id": "dp02_no_change",
+        "label": "No changes needed — continue current regimen as ordered",
+        "applicable_if": ["any"],
+        "outcome": "suboptimal",
+        "score_modifiers": { "safety": 2, "dosing": 2 },
+        "flags": ["aki_dosing_miss", "toxicity_risk"],
+        "feedback": "Renal function has declined significantly. Vancomycin, cefepime, piperacillin-tazobactam, and daptomycin all require dose or interval adjustment as CrCl falls. Failure to respond to changing renal function when nephrotoxic or renally-cleared agents are on board is a patient safety issue. This decision will trigger a downstream toxicity event."
+      }
+    ]
+  },
+  "dp_03_deescalation": {
+    "id": "dp_03_deescalation",
+    "prompt": "Blood cultures have finalized: Staphylococcus aureus, oxacillin-susceptible — MSSA. Susceptibilities are broad. The patient is clinically improving. What do you do with the antimicrobial regimen?",
+    "type": "single_select",
+    "options": [
+      {
+        "id": "dp03_cefazolin",
+        "label": "Transition to cefazolin IV",
+        "drugs": ["cefazolin"],
+        "outcome": "optimal",
+        "score_modifiers": { "coverage": 10, "stewardship": 10, "deescalation": 10, "safety": 10 },
+        "flags": ["allergy_reconciliation_note"],
+        "allergy_callout": true,
+        "feedback": "Optimal de-escalation. Beta-lactams are clinically superior to vancomycin for MSSA bacteremia — multiple studies demonstrate lower mortality, faster bacteremia clearance, and fewer treatment failures with beta-lactam therapy. Cefazolin is the preferred agent: excellent MSSA efficacy, favorable tolerability, and convenient dosing. The childhood rash reported for penicillin is a low-risk allergy phenotype — proceeding with cefazolin with standard observation is appropriate and reflects current allergy stewardship principles. Cross-reactivity between cefazolin and penicillin is approximately 1–2% and is not a contraindication in low-risk histories."
+      },
+      {
+        "id": "dp03_nafcillin",
+        "label": "Transition to nafcillin IV",
+        "drugs": ["nafcillin"],
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 9, "stewardship": 8, "deescalation": 9, "safety": 7 },
+        "flags": ["nafcillin_safety_profile", "pcn_allergy_direct_class"],
+        "allergy_callout": true,
+        "feedback": "Nafcillin is a highly active antistaphylococcal penicillin and historically a standard agent for MSSA bacteremia. Clinically reasonable. However, nafcillin carries a higher adverse effect burden than cefazolin: hepatotoxicity, thrombophlebitis, and interstitial nephritis are more common. In a patient with recovering AKI, cefazolin is generally preferred. Note that nafcillin is a penicillin-class drug — the reported allergy should be acknowledged and the low-risk phenotype documented before proceeding."
+      },
+      {
+        "id": "dp03_oxacillin",
+        "label": "Transition to oxacillin IV",
+        "drugs": ["oxacillin"],
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 9, "stewardship": 8, "deescalation": 9, "safety": 7 },
+        "flags": ["oxacillin_safety_profile", "pcn_allergy_direct_class"],
+        "allergy_callout": true,
+        "feedback": "Oxacillin is equivalent to nafcillin for MSSA bacteremia and is a reasonable choice. The same caveats apply: hepatotoxicity and phlebitis are more common than with cefazolin, and cefazolin is generally preferred at most centers. The penicillin allergy should be acknowledged and documented as low-risk before proceeding."
+      },
+      {
+        "id": "dp03_continue_vancomycin",
+        "label": "Continue vancomycin — it is susceptible and the patient is improving",
+        "drugs": ["vancomycin"],
+        "outcome": "suboptimal",
+        "score_modifiers": { "coverage": 6, "stewardship": 2, "deescalation": 0, "safety": 5 },
+        "flags": ["failed_deescalation", "vancomycin_for_mssa_bacteremia"],
+        "feedback": "Continuing vancomycin for confirmed MSSA bacteremia is a stewardship failure. Susceptibility to vancomycin does not mean vancomycin is the right drug — it means the organism is not resistant to it. Beta-lactams are clinically superior for MSSA bacteremia, with data showing higher cure rates and lower mortality. This is one of the most well-established de-escalation decisions in infectious diseases practice. Failure to make this transition when cultures clearly support it is suboptimal care."
+      },
+      {
+        "id": "dp03_daptomycin",
+        "label": "Transition to daptomycin — avoids beta-lactam allergy concern entirely",
+        "drugs": ["daptomycin"],
+        "outcome": "acceptable",
+        "score_modifiers": { "coverage": 8, "stewardship": 6, "deescalation": 6, "safety": 7 },
+        "flags": ["suboptimal_allergy_avoidance", "ck_monitoring_required"],
+        "feedback": "Daptomycin is an acceptable alternative for MSSA bacteremia when beta-lactam use is truly contraindicated. However, the penicillin allergy on file is a low-risk childhood rash — not anaphylaxis, not urticaria. Blanket avoidance of beta-lactams for a low-risk allergy history is not best practice and forfeits the clinical superiority of beta-lactam therapy for MSSA. If daptomycin is chosen, ensure CK monitoring is in place and dose-adjust for current renal function."
+      },
+      {
+        "id": "dp03_linezolid",
+        "label": "Transition to linezolid IV/PO for ease of administration",
+        "drugs": ["linezolid"],
+        "outcome": "unsafe",
+        "score_modifiers": { "coverage": 3, "stewardship": 1, "deescalation": 0, "safety": 2 },
+        "flags": ["critical_error_linezolid_bacteremia"],
+        "critical_flag": true,
+        "feedback": "Linezolid is not appropriate for Staphylococcal bacteremia. It is bacteriostatic and lacks the bactericidal activity needed to reliably clear a bloodstream infection. Clinical failure rates with linezolid for Staph bacteremia are significantly higher than with bactericidal agents. This is a critical error regardless of susceptibility results. Oral convenience does not justify choosing an inadequate agent for active bacteremia. A treatment failure event will follow."
+      },
+      {
+        "id": "dp03_tmp_smx",
+        "label": "Transition to TMP-SMX — susceptible and can be given orally",
+        "drugs": ["tmp_smx"],
+        "outcome": "suboptimal",
+        "score_modifiers": { "coverage": 5, "stewardship": 4, "deescalation": 3, "safety": 6 },
+        "flags": ["premature_oral_stepdown_for_bacteremia"],
+        "feedback": "TMP-SMX has activity against susceptible MSSA and a legitimate role in oral step-down therapy for bone and joint infections. However, it is not an appropriate primary agent for active MSSA bacteremia. IV bactericidal therapy is the standard of care for the initial treatment of Staphylococcal bacteremia. Oral step-down with TMP-SMX may be revisited later in this scenario — but transitioning here, before adequate IV bactericidal treatment, is premature."
+      }
+    ],
+    "allergy_callout": {
+      "trigger_options": ["dp03_cefazolin", "dp03_nafcillin", "dp03_oxacillin"],
+      "title": "Allergy Stewardship Note",
+      "color": "yellow",
+      "content": "The reported penicillin allergy is a childhood rash — a low-risk phenotype that does not represent an IgE-mediated reaction. Current allergy stewardship principles support use of cephalosporins (and in selected low-risk cases, penicillins) without routine skin testing when the history is this benign. Unnecessary avoidance of beta-lactams based on a low-risk label limits treatment options, increases cost, and forces use of inferior or more toxic alternatives. Allergy reconciliation is a stewardship act."
+    }
+  },
+  "dp_04_duration_and_transition": {
+    "id": "dp_04_duration_and_transition",
+    "prompt": "Repeat blood cultures at 72 hours show no growth. Debridement of the 5th metatarsal head is complete. Bone biopsy confirms MSSA. Renal function is improving. Plan the duration and route of therapy.",
+    "type": "single_select",
+    "options": [
+      {
+        "id": "dp04_6wk_iv_opat",
+        "label": "6 weeks IV therapy via OPAT",
+        "outcome": "optimal",
+        "score_modifiers": { "duration": 10, "stewardship": 9, "source_control": 9 },
+        "flags": [],
+        "feedback": "Six weeks of IV beta-lactam therapy for MSSA osteomyelitis with bacteremia is well-supported and represents a conservative, guideline-consistent approach. With surgical debridement performed and bacteremia cleared, this duration is appropriate. Cefazolin via OPAT is practical, well-tolerated, and preferred over nafcillin or oxacillin for outpatient use due to its less frequent dosing and lower adverse effect burden."
+      },
+      {
+        "id": "dp04_4wk_iv_then_oral",
+        "label": "4 weeks IV therapy followed by oral step-down if responding well",
+        "outcome": "reasonable",
+        "score_modifiers": { "duration": 9, "stewardship": 9, "source_control": 8 },
+        "flags": [],
+        "show_oral_stepdown": true,
+        "feedback": "Four weeks of IV therapy followed by oral step-down is supported by evidence in osteomyelitis management, particularly when source control is achieved and clinical response is clear. The OVIVA trial and subsequent literature support early oral transition in bone and joint infections in appropriately selected patients. This is a reasonable and increasingly adopted approach at experienced centers. Oral agent selection matters — ensure the chosen drug provides adequate MSSA bone penetration."
+      },
+      {
+        "id": "dp04_4wk_iv_total",
+        "label": "4 weeks IV therapy total, no oral step-down",
+        "outcome": "reasonable",
+        "score_modifiers": { "duration": 8, "stewardship": 7, "source_control": 8 },
+        "flags": [],
+        "feedback": "Four weeks of total IV therapy is within the acceptable range for osteomyelitis with surgical debridement and cleared bacteremia, though 6 weeks is more commonly cited for complicated cases involving bone involvement and bacteremia. With source control achieved, 4 weeks may be adequate — but the lower end of the duration range carries some relapse risk, particularly in a diabetic patient with impaired immune response and peripheral vascular supply."
+      },
+      {
+        "id": "dp04_2wk_iv_oral",
+        "label": "2 weeks IV then oral step-down for convenience",
+        "outcome": "suboptimal",
+        "score_modifiers": { "duration": 3, "stewardship": 4, "source_control": 4 },
+        "flags": ["insufficient_duration_osteo_bacteremia"],
+        "feedback": "Two weeks of IV therapy is insufficient for MSSA bacteremia with osteomyelitis. MSSA bacteremia alone warrants a minimum of 14 days of IV bactericidal therapy for uncomplicated cases — and this is not an uncomplicated case. Confirmed bone involvement, diabetic host, and need for surgical debridement all push toward 4–6 weeks of therapy. Oral step-down at 2 weeks significantly increases relapse risk."
+      },
+      {
+        "id": "dp04_14_days_total",
+        "label": "14 days total — bacteremia is cleared and the patient is improving",
+        "outcome": "unsafe",
+        "score_modifiers": { "duration": 0, "stewardship": 1, "source_control": 2 },
+        "flags": ["critical_insufficient_duration"],
+        "critical_flag": true,
+        "feedback": "Fourteen days is the minimum duration for uncomplicated Staphylococcal bacteremia without a deep focus. This patient has confirmed osteomyelitis — bone infection is a deep-seated infection that requires prolonged therapy even after clinical improvement and surgical debridement. Truncating to 14 days despite known bone involvement carries a high risk of relapse and treatment failure. A relapse event will follow."
+      },
+      {
+        "id": "dp04_oral_only_now",
+        "label": "Discontinue IV and transition entirely to oral antibiotics now",
+        "outcome": "suboptimal",
+        "score_modifiers": { "duration": 2, "stewardship": 3, "source_control": 3 },
+        "flags": ["premature_oral_stepdown"],
+        "feedback": "Transitioning to oral-only therapy at this point in the course, without completing an adequate IV induction period, is not supported for MSSA bacteremia with osteomyelitis. While oral step-down has evidence behind it, timing is critical. Most protocols describe an initial IV induction period of several weeks before oral transition — not immediate oral therapy from the time of organism identification."
+      }
+    ],
+    "oral_stepdown_sub_decision": {
+      "id": "dp04_oral_agent_select",
+      "display_condition": "dp04_4wk_iv_then_oral",
+      "prompt": "Which oral agent would you select for step-down?",
+      "type": "single_select",
+      "options": [
+        {
+          "id": "oral_tmp_smx",
+          "label": "TMP-SMX DS twice daily",
+          "outcome": "reasonable",
+          "score_modifiers": { "stewardship": 8, "coverage": 8 },
+          "feedback": "TMP-SMX is a well-supported oral step-down option for susceptible MSSA osteomyelitis. Good bone penetration, reliable oral bioavailability, and established evidence. This is a reasonable first-choice oral step-down agent for MSSA in this patient."
+        },
+        {
+          "id": "oral_clindamycin",
+          "label": "Clindamycin 300–450mg three times daily",
+          "outcome": "reasonable",
+          "score_modifiers": { "stewardship": 7, "coverage": 7 },
+          "feedback": "Clindamycin has excellent bone penetration and is a reasonable oral step-down option for susceptible MSSA osteomyelitis. Always confirm susceptibility — check for inducible clindamycin resistance (D-zone test) before relying on it. GI tolerability can be a limitation with prolonged courses."
+        },
+        {
+          "id": "oral_doxycycline",
+          "label": "Doxycycline 100mg twice daily",
+          "outcome": "acceptable",
+          "score_modifiers": { "stewardship": 6, "coverage": 6 },
+          "feedback": "Doxycycline has some evidence for bone and joint infections and the organism is susceptible here. It is a less commonly cited first-line oral step-down for MSSA osteomyelitis compared to TMP-SMX or clindamycin, but acceptable when those agents are not suitable."
+        },
+        {
+          "id": "oral_ciprofloxacin",
+          "label": "Ciprofloxacin 500mg twice daily",
+          "outcome": "suboptimal",
+          "score_modifiers": { "stewardship": 3, "coverage": 4 },
+          "flags": ["fluoroquinolone_staph_resistance_risk"],
+          "feedback": "Fluoroquinolones are not recommended for MSSA osteomyelitis step-down when better options exist. Staphylococcus aureus can develop fluoroquinolone resistance rapidly during therapy, even when susceptible at baseline. TMP-SMX or clindamycin are preferred for MSSA."
+        },
+        {
+          "id": "oral_amoxicillin_clav",
+          "label": "Amoxicillin-clavulanate 875/125mg twice daily",
+          "outcome": "suboptimal",
+          "score_modifiers": { "stewardship": 4, "coverage": 5 },
+          "flags": ["suboptimal_oral_stepdown_agent"],
+          "feedback": "Amoxicillin-clavulanate has some MSSA activity but is not a preferred oral step-down agent for osteomyelitis. Evidence base is weaker than TMP-SMX or clindamycin for bone infections, and GI adverse effects are common with prolonged use. Better options are available."
+        }
+      ]
+    }
+  },
+  "dp_05_monitoring_plan": {
+    "id": "dp_05_monitoring_plan",
+    "prompt": "The patient is ready for discharge. Select all monitoring elements you would include in the outpatient plan.",
+    "type": "multi_select",
+    "instruction": "Select all that apply. Required elements are expected. Drug-specific elements are required only if that drug is active.",
+    "options": [
+      {
+        "id": "mon_bmp_weekly",
+        "label": "BMP weekly — renal function and electrolytes",
+        "category": "labs",
+        "points": 2,
+        "required": true,
+        "feedback_if_missed": "BMP monitoring is essential in a patient with recovering AKI on prolonged antimicrobial therapy. Renal function must be tracked throughout the outpatient course."
+      },
+      {
+        "id": "mon_cbc_weekly",
+        "label": "CBC weekly",
+        "category": "labs",
+        "points": 1,
+        "required": false,
+        "feedback_if_selected": "CBC monitoring is reasonable for prolonged antibiotic courses where drug-related cytopenias or bone marrow changes may occur. Good practice."
+      },
+      {
+        "id": "mon_lft_nafcillin_oxacillin",
+        "label": "LFTs weekly if nafcillin or oxacillin is the active agent",
+        "category": "labs",
+        "points": 2,
+        "required_if": ["nafcillin", "oxacillin"],
+        "feedback_if_missed": "Nafcillin and oxacillin carry a real risk of hepatotoxicity during prolonged use. LFT monitoring is standard practice for outpatient courses with these agents."
+      },
+      {
+        "id": "mon_ck_daptomycin",
+        "label": "CK every 1–2 weeks if daptomycin is the active agent",
+        "category": "labs",
+        "points": 2,
+        "required_if": ["daptomycin"],
+        "feedback_if_missed": "CK monitoring is required with daptomycin. Myopathy and rhabdomyolysis are real adverse effects — particularly with prolonged outpatient use. Daptomycin should be held or discontinued if CK rises significantly."
+      },
+      {
+        "id": "mon_vanco_auc",
+        "label": "Vancomycin AUC monitoring if vancomycin is continued outpatient",
+        "category": "labs",
+        "points": 2,
+        "required_if": ["vancomycin"],
+        "feedback_if_missed": "If vancomycin is continued via OPAT, AUC-guided monitoring is required. Trough-only monitoring is no longer the standard of care. OPAT vancomycin requires careful coordination between the prescribing team, infusion pharmacy, and monitoring provider."
+      },
+      {
+        "id": "mon_esr_crp",
+        "label": "ESR and CRP at 2–4 week intervals",
+        "category": "inflammatory_markers",
+        "points": 1,
+        "required": false,
+        "feedback_if_selected": "Tracking inflammatory markers provides objective evidence of treatment response. Persistently elevated or rising markers mid-course should prompt reassessment — consider relapse, inadequate source control, or a new complication."
+      },
+      {
+        "id": "mon_clinical_followup",
+        "label": "Clinical follow-up with wound assessment, fever and WBC check",
+        "category": "clinical",
+        "points": 2,
+        "required": true,
+        "feedback_if_missed": "Regular clinical follow-up during OPAT is essential. Wound healing, fever resolution, and functional recovery are key endpoints. Labs alone are not sufficient to monitor osteomyelitis treatment response."
+      },
+      {
+        "id": "mon_id_followup",
+        "label": "Infectious diseases outpatient follow-up within 1–2 weeks of discharge",
+        "category": "clinical",
+        "points": 2,
+        "required": true,
+        "feedback_if_missed": "ID follow-up is a standard component of OPAT management for complicated infections. A clinician experienced in osteomyelitis and OPAT should assess this patient within 1–2 weeks of discharge to review labs, assess clinical response, and adjust the plan as needed."
+      },
+      {
+        "id": "mon_repeat_imaging",
+        "label": "Repeat MRI foot at end of treatment course",
+        "category": "imaging",
+        "points": 1,
+        "required": false,
+        "feedback_if_selected": "Repeat end-of-treatment imaging is reasonable in diabetic foot osteomyelitis where relapse rates are higher and clinical assessment alone may be unreliable. Not universally required if clinical response is clear, but not inappropriate."
+      },
+      {
+        "id": "mon_opat_line_check",
+        "label": "PICC line and IV site monitoring with infusion pharmacy coordination",
+        "category": "logistics",
+        "points": 1,
+        "required_if": ["iv_opat"],
+        "feedback_if_missed": "IV OPAT requires ongoing logistics: PICC line assessment, IV site monitoring, infusion pharmacy contact, and plan for complications. These are part of safe OPAT management and should be built in from the start."
+      },
+      {
+        "id": "mon_nothing",
+        "label": "No specific monitoring — the patient is improving and is being discharged",
+        "category": "none",
+        "points": -5,
+        "required": false,
+        "critical_flag": true,
+        "flags": ["critical_no_monitoring_plan"],
+        "feedback_if_selected": "Discharging a patient on prolonged antimicrobial therapy for MSSA bacteremia and osteomyelitis without any structured monitoring plan is unsafe. Adverse effects, treatment failure, relapse, line complications, and drug toxicity are all possible and require active outpatient surveillance throughout the course."
+      }
+    ],
+    "scoring_logic": {
+      "type": "additive_with_conditionals",
+      "notes": [
+        "Player earns points for each correct selection.",
+        "Penalty of -2 for each required element missed.",
+        "Penalty of -2 for each required_if element missed when that drug is active.",
+        "Critical flag triggered if mon_nothing is selected."
+      ]
+    }
+  }
+}

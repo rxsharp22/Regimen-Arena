@@ -1,0 +1,51 @@
+[
+  {
+    "trigger_drug": "vancomycin",
+    "trigger_phase": "phase_02",
+    "content": "Vancomycin AUC estimate now available. Level is trending high given worsening renal function.",
+    "type": "lab_result"
+  },
+  {
+    "trigger_drug": "piperacillin_tazobactam",
+    "trigger_phase": "phase_02",
+    "content": "⚠ Nephrotoxicity alert: Vancomycin + piperacillin-tazobactam in the setting of worsening AKI. Consider alternative gram-negative coverage.",
+    "type": "safety_alert"
+  },
+  {
+    "trigger_drug": "daptomycin",
+    "trigger_phase": "phase_04",
+    "content": "CK level returned: 3× ULN. Daptomycin-associated myopathy is possible. Reassess continued use.",
+    "type": "adverse_event"
+  },
+  {
+    "trigger_drug": "nafcillin",
+    "trigger_phase": "phase_04",
+    "content": "LFTs mildly elevated — AST/ALT 2× ULN. Consistent with known nafcillin hepatotoxicity pattern.",
+    "type": "adverse_event"
+  },
+  {
+    "trigger_drug": "oxacillin",
+    "trigger_phase": "phase_04",
+    "content": "LFTs mildly elevated — AST/ALT 2× ULN. Consistent with known oxacillin hepatotoxicity pattern.",
+    "type": "adverse_event"
+  },
+  {
+    "trigger_flag": "aki_dosing_miss",
+    "trigger_phase": "phase_03",
+    "content": "⚠ AKI has worsened further. SCr now 2.8. Vancomycin level critically elevated. Nephrotoxicity event in progress.",
+    "type": "toxicity_event",
+    "score_penalty": { "safety": -3, "dosing": -3 }
+  },
+  {
+    "trigger_flag": "critical_error_linezolid_bacteremia",
+    "trigger_phase": "phase_04",
+    "content": "⚠ Blood cultures at day 5: Persistent Staphylococcus aureus bacteremia. Patient is febrile. Bacteremia has NOT cleared. Treatment failure event.",
+    "type": "treatment_failure"
+  },
+  {
+    "trigger_flag": "critical_insufficient_duration",
+    "trigger_phase": "phase_05",
+    "content": "⚠ Relapse event: Patient returns 3 weeks after discharge with recurrent foot pain, fever, and rising inflammatory markers. MRI shows recurrent osteomyelitis. Treatment failure due to insufficient duration.",
+    "type": "relapse_event"
+  }
+]
