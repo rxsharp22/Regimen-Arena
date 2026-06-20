@@ -75,7 +75,7 @@ export default function DecisionPoint({
     <section className="mt-8 space-y-4">
       <div>
         <h3 className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-2">
-          Decision Point
+          Clinical Decision
         </h3>
         <p className="text-sm font-medium text-[#e8edf4]">{decisionPoint.prompt}</p>
         {decisionPoint.instruction && (
@@ -115,7 +115,7 @@ export default function DecisionPoint({
             disabled={!canConfirm}
             loading={isProcessing}
             onClick={handleConfirm}
-            label={pendingOral ? 'Confirm Oral Agent' : 'Confirm Selection'}
+            label={pendingOral ? 'Select Oral Agent' : 'Place Order'}
           />
         </div>
       )}

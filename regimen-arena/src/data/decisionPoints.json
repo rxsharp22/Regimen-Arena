@@ -326,7 +326,7 @@
     "id": "dp_05_monitoring_plan",
     "prompt": "The patient is ready for discharge. Select all monitoring elements you would include in the outpatient plan.",
     "type": "multi_select",
-    "instruction": "Select all monitoring elements you would include in the outpatient plan.",
+    "instruction": "Build the outpatient monitoring plan for this patient.",
     "options": [
       {
         "id": "mon_bmp_weekly",

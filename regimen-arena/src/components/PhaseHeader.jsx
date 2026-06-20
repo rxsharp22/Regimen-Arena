@@ -7,7 +7,7 @@ export default function PhaseHeader({ phase, currentIndex, totalPhases, score, s
     <header className="border-b border-[#2a3544] pb-4 mb-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
         <p className="text-[10px] uppercase tracking-widest text-[#4a9ead]">
-          Phase {currentIndex + 1} of {totalPhases}
+          Day {currentIndex + 1} of {totalPhases}
         </p>
         <div className="flex gap-1">
           {Array.from({ length: totalPhases }).map((_, i) => (
@@ -23,9 +23,9 @@ export default function PhaseHeader({ phase, currentIndex, totalPhases, score, s
       <h2 className="text-2xl font-bold">{phase.label}</h2>
       <div className="mt-3 flex items-center gap-3">
         <span className="text-[10px] text-[#8b9cb3] uppercase tracking-widest shrink-0">
-          Score
+          Performance
         </span>
-        <div className="flex-1 h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
+        <div className="flex-1 h-1 bg-[#0f1419] rounded-full overflow-hidden">
           <div
             className="h-full rounded-full bg-[#4a9ead] transition-all duration-700"
             style={{ width: `${pct}%` }}

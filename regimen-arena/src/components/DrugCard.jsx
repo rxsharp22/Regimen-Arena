@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { getDrugById, getSpectrumTagsForOption, optionRequiresRenalAdjustment } from '../utils/decisions'
 
 function DrugLine({ drugId }) {
@@ -14,6 +15,7 @@ function DrugLine({ drugId }) {
 }
 
 export default function DrugCard({ option, selected, disabled, onSelect, multiSelect }) {
+  const [showRef, setShowRef] = useState(false)
   const spectrumTags = getSpectrumTagsForOption(option)
   const renalRequired = optionRequiresRenalAdjustment(option)
 
@@ -45,20 +47,36 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
           {option.drugs?.map((id) => (
             <DrugLine key={id} drugId={id} />
           ))}
-          {spectrumTags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {spectrumTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[9px] px-1.5 py-0.5 rounded border border-[#2a3544] text-[#8b9cb3]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowRef((r) => !r)
+              }}
+              className="mt-2 text-[10px] text-[#4a9ead]/60 hover:text-[#4a9ead] transition-colors"
+            >
+              {showRef ? 'Hide reference ↑' : 'Drug reference ↓'}
+            </button>
           )}
-          {renalRequired && (
-            <p className="text-[10px] text-[#c9a227] mt-2">⚠ Renal adjustment required</p>
+          {showRef && !disabled && (
+            <>
+              {spectrumTags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {spectrumTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[9px] px-1.5 py-0.5 rounded border border-[#2a3544] text-[#8b9cb3]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {renalRequired && (
+                <p className="text-[10px] text-[#c9a227] mt-2">⚠ Renal adjustment required</p>
+              )}
+            </>
           )}
         </div>
       </div>

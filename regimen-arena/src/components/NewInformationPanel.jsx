@@ -19,7 +19,7 @@ export default function NewInformationPanel({ phase, conditionalEvents = [] }) {
   return (
     <section className="space-y-3">
       <h3 className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold">
-        New Information
+        Chart Update
       </h3>
 
       {phase.narrative && (

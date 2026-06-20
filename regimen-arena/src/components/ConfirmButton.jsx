@@ -1,4 +1,4 @@
-export default function ConfirmButton({ disabled, onClick, label = 'Confirm Selection', loading = false }) {
+export default function ConfirmButton({ disabled, onClick, label = 'Place Order', loading = false }) {
   return (
     <button
       type="button"
