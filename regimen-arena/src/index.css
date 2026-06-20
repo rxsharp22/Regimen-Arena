@@ -53,3 +53,59 @@ body {
 .timeline-connector {
   background: linear-gradient(90deg, var(--color-clinical-border) 0%, var(--color-accent-cyan) 50%, var(--color-clinical-border) 100%);
 }
+
+@keyframes bacteria-idle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes bacteria-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.92; }
+}
+
+@keyframes bacteria-hit-anim {
+  0% { transform: translateX(0); filter: brightness(1); }
+  25% { transform: translateX(-4px); filter: brightness(1.8); }
+  50% { transform: translateX(4px); filter: brightness(1.4); }
+  75% { transform: translateX(-2px); filter: brightness(1.2); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
+
+@keyframes bacteria-miss-anim {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes bacteria-backfire-anim {
+  0% { transform: scale(1); filter: hue-rotate(0deg) brightness(1); }
+  40% { transform: scale(1.25); filter: hue-rotate(30deg) brightness(1.5); }
+  100% { transform: scale(1.1); filter: hue-rotate(15deg) brightness(1.2); }
+}
+
+@keyframes projectile-anim {
+  0% { transform: translateX(-40px); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(40px); opacity: 0; }
+}
+
+@keyframes effect-text-anim {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes trail-card-anim {
+  0% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.bacteria-idle { animation: bacteria-idle 2.8s ease-in-out infinite; }
+.bacteria-pulse { animation: bacteria-pulse 2.8s ease-in-out infinite; }
+.bacteria-hit { animation: bacteria-hit-anim 0.55s ease forwards; }
+.bacteria-miss { animation: bacteria-miss-anim 0.4s ease forwards; }
+.bacteria-backfire { animation: bacteria-backfire-anim 0.7s ease forwards; }
+.projectile-fly { animation: projectile-anim 0.35s ease-out forwards; }
+.effect-text-in { animation: effect-text-anim 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.trail-card-in { animation: trail-card-anim 0.35s ease-out forwards; }

@@ -21,6 +21,13 @@ function trendColor(trend) {
   return '#8b9cb3'
 }
 
+function hpBarColor(hp) {
+  if (hp < 55) return '#c45c5c'
+  if (hp < 70) return '#c9a227'
+  if (hp < 85) return '#4a9ead'
+  return '#3d9a6e'
+}
+
 function VitalItem({ label, value, unit, trend }) {
   return (
     <span className="whitespace-nowrap">
@@ -33,9 +40,19 @@ function VitalItem({ label, value, unit, trend }) {
   )
 }
 
-export default function PatientStatusPanel({ phaseId, conditionalEvents = [] }) {
+export default function PatientStatusPanel({
+  phaseId,
+  conditionalEvents = [],
+  score = {},
+  scoreMaxes = {},
+}) {
   const base = patientTimeline[phaseId]
   if (!base) return null
+
+  const total = Object.values(score).reduce((s, v) => s + v, 0)
+  const max = Object.values(scoreMaxes).reduce((s, v) => s + v, 0)
+  const hp = Math.min(85, Math.max(15, Math.round(35 + (max > 0 ? (total / max) * 50 : 0))))
+  const hpPct = hp
 
   const hasAdverseEvent = conditionalEvents.some((e) => ADVERSE_EVENT_TYPES.has(e.type))
   const stabilityKey = hasAdverseEvent ? 'critical' : base.stability
@@ -47,6 +64,19 @@ export default function PatientStatusPanel({ phaseId, conditionalEvents = [] }) 
 
   return (
     <div className="relative bg-[#151c26] border border-[#2a3544] rounded-lg px-4 py-3 mb-6 overflow-hidden">
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-[10px] uppercase tracking-widest text-[#8b9cb3] shrink-0">
+          Patient HP
+        </span>
+        <div className="flex-1 h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-1000"
+            style={{ width: `${hpPct}%`, backgroundColor: hpBarColor(hp) }}
+          />
+        </div>
+        <span className="text-[10px] text-[#8b9cb3] tabular-nums shrink-0">{hp}/100</span>
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <span
