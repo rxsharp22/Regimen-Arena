@@ -189,7 +189,6 @@ Clinical Tactical Stewardship </p>
     Educational simulation only — not intended for patient care decisions
   </p>
 </div>
-```
 
 )
 }
