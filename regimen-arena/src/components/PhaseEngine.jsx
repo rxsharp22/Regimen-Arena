@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import PhaseHeader from './PhaseHeader'
 import PatientStatusPanel from './PatientStatusPanel'
 import NewInformationPanel from './NewInformationPanel'
