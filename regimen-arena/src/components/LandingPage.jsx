@@ -1,4 +1,5 @@
 import React from 'react'
+import StewardshipLeadCard from './StewardshipLeadCard'
 
 export default function LandingPage({ onEnter }) {
 return ( <div className="max-w-5xl mx-auto">
@@ -22,6 +23,10 @@ Clinical Tactical Stewardship </p>
       while guiding therapy from empiric coverage to completion.
     </p>
   </section>
+
+  <div className="mb-8 max-w-md mx-auto">
+    <StewardshipLeadCard />
+  </div>
 
   {/* Operations Header */}
   <div className="mb-4">

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { getDrugById, getSpectrumTagsForOption, optionRequiresRenalAdjustment } from '../utils/decisions'
+import { getDrugVisualsForOption } from '../data/visualAssets'
+import VisualAssetDisplay from './VisualAssetDisplay'
 
 function DrugLine({ drugId }) {
   const drug = getDrugById(drugId)
@@ -18,6 +20,7 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
   const [showRef, setShowRef] = useState(false)
   const spectrumTags = getSpectrumTagsForOption(option)
   const renalRequired = optionRequiresRenalAdjustment(option)
+  const drugVisuals = getDrugVisualsForOption(option)
 
   return (
     <button
@@ -32,6 +35,22 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
             : 'border-[#2a3544] bg-[#151c26] hover:border-[#4a9ead]/40'
       }`}
     >
+      {drugVisuals.length > 0 && (
+        <div
+          className={`mb-3 flex gap-2 ${
+            drugVisuals.length > 1 ? 'justify-center' : ''
+          }`}
+        >
+          {drugVisuals.map((asset) => (
+            <VisualAssetDisplay
+              key={asset.id}
+              asset={asset}
+              size="card"
+              className={drugVisuals.length > 1 ? 'flex-1 min-w-0 max-w-[48%]' : 'w-full'}
+            />
+          ))}
+        </div>
+      )}
       <div className="flex items-start gap-2">
         {multiSelect && (
           <span

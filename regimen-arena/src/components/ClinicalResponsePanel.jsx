@@ -49,7 +49,7 @@ export default function ClinicalResponsePanel({ outcome, drugLabel, onComplete }
             <div className="w-3 h-3 rounded-full bg-[#4a9ead] projectile-fly" />
           )}
         </div>
-        <OrganismSprite animState={spriteState} />
+        <OrganismSprite animState={spriteState} organismId="mssa" label="MSSA" />
       </div>
       {phase === 'impact' && (
         <p
