@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { TUTORIAL_SCREENS, TUTORIAL_ACCESS_LABEL } from '../../data/onboardingContent'
-import StewardshipLeadNarrator from './StewardshipLeadNarrator'
+import StewardshipLeadFigure from './StewardshipLeadFigure'
+import BriefingDialoguePanel from './BriefingDialoguePanel'
 
 export default function OnboardingTutorial({ onComplete }) {
   const [step, setStep] = useState(0)
@@ -10,7 +11,7 @@ export default function OnboardingTutorial({ onComplete }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#0f1419]">
       <header className="shrink-0 border-b border-[#2a3544] bg-[#151c26] px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded border border-[#4a9ead]/40 flex items-center justify-center text-[#4a9ead] font-bold text-sm">
               RA
@@ -33,24 +34,18 @@ export default function OnboardingTutorial({ onComplete }) {
       </header>
 
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-        <article className="w-full max-w-2xl bg-[#151c26] border border-[#2a3544] rounded-xl overflow-hidden shadow-[0_0_24px_rgba(0,0,0,0.25)]">
-          <div className="px-6 py-4 border-b border-[#2a3544] bg-[#1a222d]">
-            <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold">
-              Stewardship Lead briefing
-            </p>
-            <h2 className="text-2xl font-bold text-[#e8edf4] mt-1">{screen.title}</h2>
+        <article className="briefing-console w-full max-w-5xl bg-[#151c26] border border-[#2a3544] rounded-xl overflow-hidden shadow-[0_0_32px_rgba(0,0,0,0.35)]">
+          <div className="briefing-stage">
+            <StewardshipLeadFigure characterPose={screen.characterPose ?? 'default'} />
+
+            <BriefingDialoguePanel
+              title={screen.title}
+              body={screen.body}
+              speaker={screen.speaker}
+            />
           </div>
 
-          <div className="px-6 py-5 space-y-4">
-            <StewardshipLeadNarrator />
-            <blockquote className="border-l-2 border-[#4a9ead]/50 pl-4">
-              <p className="text-sm text-[#b8c5d6] leading-relaxed whitespace-pre-line">
-                {screen.body}
-              </p>
-            </blockquote>
-          </div>
-
-          <footer className="px-6 py-4 border-t border-[#2a3544] bg-[#1a222d]/80 flex flex-wrap items-center justify-between gap-3">
+          <footer className="px-4 md:px-6 py-4 border-t border-[#2a3544] bg-[#1a222d]/90 flex flex-wrap items-center justify-between gap-3">
             <div className="flex gap-1.5" aria-label="Tutorial progress">
               {TUTORIAL_SCREENS.map((s, i) => (
                 <span

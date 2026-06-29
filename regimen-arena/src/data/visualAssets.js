@@ -66,7 +66,11 @@ export const visualAssets = {
     stewardshipLead: {
       displayName: 'Clinical Stewardship Lead',
       role: 'Oversee antimicrobial selection, adjustment, monitoring, and narrowing as clinical data evolve.',
+      briefingAlt: 'Stewardship Lead character holding a clinical tablet.',
       primaryImage: `${VISUAL_BASE}/Player-character.png`,
+      poses: {
+        default: `${VISUAL_BASE}/Player-character.png`,
+      },
       altImages: [],
     },
   },
@@ -137,6 +141,13 @@ export function getPlayerVisual(id = 'stewardshipLead') {
   const record = visualAssets.player[id]
   if (!record) return null
   return { id, ...record }
+}
+
+/** Resolve briefing character image for a pose key (extensible for future variants). */
+export function getPlayerBriefingImage(pose = 'default', id = 'stewardshipLead') {
+  const record = visualAssets.player[id]
+  if (!record) return null
+  return record.poses?.[pose] ?? record.primaryImage ?? null
 }
 
 export function inferOrganismIdFromText(text) {
