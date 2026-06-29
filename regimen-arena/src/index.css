@@ -327,9 +327,10 @@ body {
 /* Character briefing bay — dark stage, not an image frame */
 .briefing-character-bay {
   position: relative;
-  overflow: hidden;
-  min-height: 220px;
-  max-height: min(40vh, 340px);
+  overflow-x: hidden;
+  overflow-y: visible;
+  min-height: 260px;
+  max-height: min(48vh, 400px);
   background-color: #0f1419;
 }
 
@@ -338,6 +339,7 @@ body {
     max-height: none;
     min-height: 460px;
     height: 100%;
+    overflow: hidden;
   }
 }
 
@@ -380,41 +382,41 @@ body {
 .briefing-character-clip {
   position: absolute;
   inset: 0;
-  overflow: hidden;
   z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0.5rem 0.35rem 0;
+  overflow: visible;
 }
 
 .briefing-character-image {
-  position: absolute;
-  bottom: -2%;
-  left: -10%;
-  width: 128%;
-  max-width: none;
+  display: block;
+  width: auto;
+  max-width: 100%;
   height: auto;
-  min-height: 108%;
-  object-fit: cover;
-  object-position: bottom left;
-  /* Baked-in white/checkerboard PNGs: blend into dark bay until true-alpha assets ship */
-  mix-blend-mode: multiply;
-  filter: contrast(1.12) saturate(1.08) drop-shadow(0 16px 32px rgba(0, 0, 0, 0.55));
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.5));
   pointer-events: none;
   user-select: none;
 }
 
 @media (min-width: 768px) {
+  .briefing-character-clip {
+    padding: 0.75rem 0.5rem 0;
+  }
+
   .briefing-character-image {
-    bottom: -4%;
-    left: -14%;
-    width: 138%;
-    min-height: 112%;
+    max-height: 98%;
   }
 }
 
 @media (max-width: 767px) {
   .briefing-character-image {
-    left: -6%;
-    width: 118%;
-    min-height: 104%;
+    max-width: 100%;
+    max-height: calc(100% - 0.25rem);
   }
 }
 
