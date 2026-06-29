@@ -5,6 +5,7 @@
  * - guided: intent labels, coverage chips, and hints visible before decision
  *
  * TODO: Expose a UI toggle (e.g. header settings) and persist learner preference.
+ * Guided Mode may restore intent labels, coverage chips, and pre-decision hints.
  */
 
 /** @typedef {'arena' | 'guided'} DisplayMode */

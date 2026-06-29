@@ -9,6 +9,7 @@ import CriticalErrorOverlay from './CriticalErrorOverlay'
 import ClinicalResponsePanel from './ClinicalResponsePanel'
 import NarrativeEventCard from './NarrativeEventCard'
 import InfectionArenaPanel from './arena/InfectionArenaPanel'
+import CaseBriefing from './onboarding/CaseBriefing'
 import { getDecisionPoint, scoreMonitoringPlan } from '../utils/decisions'
 
 const TRANSITION_CARDS = {
@@ -173,6 +174,10 @@ export default function PhaseEngine({
         phase={currentPhaseData}
         conditionalEvents={state.conditionalEvents}
       />
+
+      {!state.showFeedback && !battleState && !isProcessing && (
+        <CaseBriefing phaseId={currentPhaseData.id} />
+      )}
 
       <InfectionArenaPanel
         phase={currentPhaseData}

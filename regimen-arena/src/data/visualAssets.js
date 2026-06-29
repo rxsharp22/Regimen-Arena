@@ -64,8 +64,8 @@ export const visualAssets = {
 
   player: {
     stewardshipLead: {
-      displayName: 'Stewardship Lead',
-      role: 'Clinical commander / antimicrobial stewardship strategist',
+      displayName: 'Clinical Stewardship Lead',
+      role: 'Oversee antimicrobial selection, adjustment, monitoring, and narrowing as clinical data evolve.',
       primaryImage: `${VISUAL_BASE}/Player-character.png`,
       altImages: [],
     },

@@ -1,75 +1,66 @@
 import { getDrugById } from './decisions'
 import {
-  drugMechanismLabels,
-  regimenOptionMeta,
   getMechanismLabel,
-  getRegimenOptionMeta,
+  getOptionDisplayMeta,
+  getNeutralDrugFacts,
+  drugMechanismLabels,
 } from '../data/regimenCardMeta'
-import { isGuidedMode } from '../data/displayMode'
 
-const SPECTRUM_TAG_TO_CHIP = {
-  MRSA: 'MRSA',
-  MSSA: 'MSSA',
-  'Gram-': 'Gram-negative',
-  'Limited GN': 'Limited Gram-negative',
-  Pseudomonas: 'Pseudomonas',
-  Anaerobes: 'Anaerobes',
-  Enterococcus: 'Enterococcus',
-  ESBL: 'ESBL',
-  VRE: 'VRE',
+function deriveDrugClassSubtitle(drugIds, optionId) {
+  const override = getOptionDisplayMeta(optionId)?.drugClass
+  if (override) return override
+
+  if (drugIds.length === 1) {
+    return getDrugById(drugIds[0])?.class ?? null
+  }
+
+  if (drugIds.length > 1) {
+    return drugIds
+      .map((id) => getDrugById(id)?.class)
+      .filter(Boolean)
+      .join(' + ')
+  }
+
+  return null
 }
 
-function deriveCoverageFromDrugs(drugIds) {
-  const chips = new Set()
-  for (const drugId of drugIds) {
-    const drug = getDrugById(drugId)
-    drug?.spectrum_tags?.forEach((tag) => {
-      const chip = SPECTRUM_TAG_TO_CHIP[tag]
-      if (chip) chips.add(chip)
-    })
-  }
-  return [...chips]
-}
+/**
+ * Neutral pre-choice display data. No rationale, coverage hints, or stewardship conclusions.
+ */
+export function getOptionDisplay(option) {
+  const drugIds = option?.drugs ?? []
+  const drugClass = deriveDrugClassSubtitle(drugIds, option?.id)
 
-export function getRegimenCardMeta(option) {
-  const explicit = regimenOptionMeta[option?.id]
-  const guided = isGuidedMode()
-
-  if (explicit) {
-    return {
-      subtitle: guided ? explicit.intent : explicit.neutralLabel,
-      coverage: explicit.coverage,
-      monitoringFlags: explicit.monitoringFlags,
-      showDetailsByDefault: guided,
-      richLayout: Boolean(option?.drugs?.length),
-    }
-  }
-
-  if (!option?.drugs?.length) {
-    return { richLayout: false, showDetailsByDefault: guided }
-  }
+  const neutralDrugFacts = drugIds.flatMap((id) => {
+    const drug = getDrugById(id)
+    const facts = getNeutralDrugFacts(id)
+    return drug
+      ? [{ drugName: drug.display_name, route: drug.route, class: drug.class, facts }]
+      : []
+  })
 
   return {
-    subtitle: null,
-    coverage: deriveCoverageFromDrugs(option.drugs),
+    actionLabel: option?.label ?? '',
+    drugClass,
+    neutralDrugFacts,
+    hasDrugDetails: drugIds.length > 0,
+  }
+}
+
+/** @deprecated Use getOptionDisplay — kept for any guided-mode expansion */
+export function getRegimenCardMeta(option) {
+  const display = getOptionDisplay(option)
+  return {
+    subtitle: display.drugClass,
+    richLayout: display.hasDrugDetails,
+    showDetailsByDefault: false,
+    coverage: [],
     monitoringFlags: [],
-    showDetailsByDefault: guided,
-    richLayout: true,
   }
 }
 
 export function getRegimenTeachingNotes(optionId) {
-  const meta = getRegimenOptionMeta(optionId)
-  if (!meta) return null
-
-  const parts = []
-  if (meta.intent) parts.push(`Regimen role: ${meta.intent}`)
-  if (meta.monitoringFlags?.length) {
-    parts.push(`Key considerations: ${meta.monitoringFlags.join(' · ')}`)
-  }
-  if (meta.teachingNotes) parts.push(meta.teachingNotes)
-
-  return parts.length > 0 ? parts.join('\n\n') : null
+  return getOptionDisplayMeta(optionId)?.stewardshipTeaching ?? null
 }
 
 export function getMechanismLabelsForDrugs(drugIds = []) {

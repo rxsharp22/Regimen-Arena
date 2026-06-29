@@ -1,6 +1,7 @@
 import patient from '../../data/patient.json'
 import scenario from '../../data/scenario.json'
 import { getArenaStageContext } from '../../utils/arenaStage'
+import { ARENA_CAPTION } from '../../data/onboardingContent'
 import { isGuidedMode } from '../../data/displayMode'
 import { getDrugById } from '../../utils/decisions'
 import DeployedAgentTile from './DeployedAgentTile'
@@ -56,6 +57,7 @@ export default function InfectionArenaPanel({
             Infection Arena
           </p>
           <p className="text-xs text-[#8b9cb3] mt-0.5">{ctx.infectionSite}</p>
+          <p className="text-[10px] text-[#4a9ead]/80 mt-1 leading-snug max-w-md">{ARENA_CAPTION}</p>
         </div>
         <span className="text-[10px] px-2 py-0.5 rounded border border-[#344559] text-[#8b9cb3] bg-[#1a222d] uppercase font-semibold">
           {scenario.severity} presentation
