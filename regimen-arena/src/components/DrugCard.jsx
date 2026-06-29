@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { getDrugById, getSpectrumTagsForOption, optionRequiresRenalAdjustment } from '../utils/decisions'
-import { getDrugVisualsForOption } from '../data/visualAssets'
-import VisualAssetDisplay from './VisualAssetDisplay'
+import { getRegimenCardMeta } from '../utils/regimenCard'
+import RegimenSpritePanel from './regimen/RegimenSpritePanel'
+import CoverageChip from './regimen/CoverageChip'
+import MonitoringFlag from './regimen/MonitoringFlag'
 
-function DrugLine({ drugId }) {
+function DrugReferenceLine({ drugId }) {
   const drug = getDrugById(drugId)
   if (!drug) return null
   return (
-    <div className="flex justify-between text-xs text-[#8b9cb3] mt-1">
+    <div className="flex justify-between gap-2 text-xs text-[#8b9cb3] mt-1">
       <span className="text-[#b8c5d6]">{drug.display_name}</span>
-      <span>
+      <span className="text-right shrink-0">
         {drug.class} · {drug.route}
       </span>
     </div>
@@ -18,68 +20,102 @@ function DrugLine({ drugId }) {
 
 export default function DrugCard({ option, selected, disabled, onSelect, multiSelect }) {
   const [showRef, setShowRef] = useState(false)
+  const meta = getRegimenCardMeta(option)
   const spectrumTags = getSpectrumTagsForOption(option)
   const renalRequired = optionRequiresRenalAdjustment(option)
-  const drugVisuals = getDrugVisualsForOption(option)
+  const hasDrugs = Boolean(option.drugs?.length)
+  const richLayout = hasDrugs && meta.richLayout !== false
+
+  const handleSelect = () => {
+    if (!disabled) onSelect(option.id)
+  }
+
+  const handleKeyDown = (e) => {
+    if (disabled) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onSelect(option.id)
+    }
+  }
 
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => onSelect(option.id)}
-      className={`w-full text-left border rounded-lg p-4 transition-all ${
+    <div
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-pressed={selected}
+      aria-disabled={disabled}
+      onClick={handleSelect}
+      onKeyDown={handleKeyDown}
+      className={`w-full text-left border rounded-lg p-4 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[#4a9ead]/50 ${
         disabled
           ? 'opacity-40 cursor-not-allowed border-[#2a3544] bg-[#151c26]'
           : selected
-            ? 'border-[#4a9ead]/70 bg-[#4a9ead]/10 shadow-[0_0_12px_rgba(74,158,173,0.12)]'
-            : 'border-[#2a3544] bg-[#151c26] hover:border-[#4a9ead]/40'
+            ? 'border-[#4a9ead]/70 bg-[#4a9ead]/10 shadow-[0_0_12px_rgba(74,158,173,0.12)] cursor-pointer'
+            : 'border-[#2a3544] bg-[#151c26] hover:border-[#4a9ead]/40 cursor-pointer'
       }`}
     >
-      {drugVisuals.length > 0 && (
-        <div
-          className={`mb-3 flex gap-2 ${
-            drugVisuals.length > 1 ? 'justify-center' : ''
-          }`}
-        >
-          {drugVisuals.map((asset) => (
-            <VisualAssetDisplay
-              key={asset.id}
-              asset={asset}
-              size="card"
-              className={drugVisuals.length > 1 ? 'flex-1 min-w-0 max-w-[48%]' : 'w-full'}
-            />
-          ))}
-        </div>
-      )}
       <div className="flex items-start gap-2">
         {multiSelect && (
           <span
             className={`mt-0.5 w-4 h-4 shrink-0 rounded border flex items-center justify-center text-[10px] ${
               selected ? 'border-[#4a9ead] bg-[#4a9ead] text-[#0f1419]' : 'border-[#2a3544]'
             }`}
+            aria-hidden
           >
             {selected ? '✓' : ''}
           </span>
         )}
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-sm">{option.label}</h4>
-          {option.drugs?.map((id) => (
-            <DrugLine key={id} drugId={id} />
-          ))}
-          {!disabled && (
-            <button
-              type="button"
+
+        <div className="flex-1 min-w-0 space-y-3">
+          {/* Header */}
+          <header>
+            <h4 className="font-semibold text-sm text-[#e8edf4] leading-snug">{option.label}</h4>
+            {meta.intent && (
+              <p className="text-[11px] text-[#4a9ead] mt-1 leading-snug">{meta.intent}</p>
+            )}
+          </header>
+
+          {/* Tactical sprite tile */}
+          {richLayout && (
+            <RegimenSpritePanel drugIds={option.drugs} />
+          )}
+
+          {/* Coverage chips */}
+          {meta.coverage?.length > 0 && (
+            <div className="flex flex-wrap gap-1" aria-label="Spectrum coverage">
+              {meta.coverage.map((chip) => (
+                <CoverageChip key={chip} label={chip} />
+              ))}
+            </div>
+          )}
+
+          {/* Monitoring / tradeoff flags */}
+          {meta.monitoringFlags?.length > 0 && (
+            <div className="flex flex-wrap gap-1" aria-label="Monitoring and tradeoffs">
+              {meta.monitoringFlags.map((flag) => (
+                <MonitoringFlag key={flag} label={flag} />
+              ))}
+            </div>
+          )}
+
+          {/* Drug reference toggle */}
+          {!disabled && hasDrugs && (
+            <span
               onClick={(e) => {
                 e.stopPropagation()
                 setShowRef((r) => !r)
               }}
-              className="mt-2 text-[10px] text-[#4a9ead]/60 hover:text-[#4a9ead] transition-colors"
+              className="inline-block mt-1 text-[10px] text-[#4a9ead]/60 hover:text-[#4a9ead] transition-colors cursor-pointer select-none"
             >
               {showRef ? 'Hide reference ↑' : 'Drug reference ↓'}
-            </button>
+            </span>
           )}
-          {showRef && !disabled && (
-            <>
+
+          {showRef && !disabled && hasDrugs && (
+            <div className="pt-2 border-t border-[#2a3544]/60 space-y-1">
+              {option.drugs.map((id) => (
+                <DrugReferenceLine key={id} drugId={id} />
+              ))}
               {spectrumTags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {spectrumTags.map((tag) => (
@@ -93,12 +129,21 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
                 </div>
               )}
               {renalRequired && (
-                <p className="text-[10px] text-[#c9a227] mt-2">⚠ Renal adjustment required</p>
+                <p className="text-[10px] text-[#c9a227] mt-2">Renal adjustment required</p>
               )}
-            </>
+            </div>
+          )}
+
+          {/* Compact fallback for non-drug options (e.g. dosing adjustments) */}
+          {!richLayout && !hasDrugs && option.flags?.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {option.flags.slice(0, 3).map((flag) => (
+                <MonitoringFlag key={flag} label={flag.replace(/_/g, ' ')} />
+              ))}
+            </div>
           )}
         </div>
       </div>
-    </button>
+    </div>
   )
 }
