@@ -11,10 +11,12 @@ export default function BriefingDialoguePanel({
       className={`briefing-dialogue-panel flex flex-col min-h-0 ${className}`}
       aria-labelledby="briefing-dialogue-title"
     >
+      <div className="briefing-dialogue-channel-rail" aria-hidden />
       <div className="briefing-dialogue-connector" aria-hidden />
+      <div className="briefing-dialogue-notch" aria-hidden />
 
       <header className="briefing-dialogue-header shrink-0">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="briefing-speaker-plate">
           <span className="briefing-transmit-dot" aria-hidden />
           <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold">
             {speaker}
@@ -24,7 +26,7 @@ export default function BriefingDialoguePanel({
             Arena Briefing
           </p>
         </div>
-        <p className="text-[10px] uppercase tracking-widest text-[#8b9cb3] mt-1">
+        <p className="text-[10px] uppercase tracking-widest text-[#8b9cb3] mt-2 pl-1">
           Clinical Briefing · Transmission active
         </p>
       </header>

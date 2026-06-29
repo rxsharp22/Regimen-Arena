@@ -16,17 +16,20 @@ export default function StewardshipLeadFigure({
 
   return (
     <div
-      className={`briefing-character-zone ${className}`}
+      className={`briefing-character-bay ${className}`}
       data-visual-theme={visualTheme ?? tutorialImage.theme}
     >
-      <div className="briefing-character-glow" aria-hidden />
-      <div className="briefing-character-frame">
+      <div className="briefing-bay-backdrop" aria-hidden />
+      <div className="briefing-bay-glow" aria-hidden />
+      <div className="briefing-bay-floor-line" aria-hidden />
+
+      <div className="briefing-character-clip">
         {showImage ? (
           <img
             src={src}
             alt={alt}
-            width={512}
-            height={768}
+            width={1254}
+            height={1254}
             decoding="async"
             onError={() => setImageFailed(true)}
             className="briefing-character-image"
@@ -42,6 +45,8 @@ export default function StewardshipLeadFigure({
           </div>
         )}
       </div>
+
+      <div className="briefing-channel-emitter" aria-hidden />
     </div>
   )
 }

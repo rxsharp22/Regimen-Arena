@@ -42,6 +42,8 @@ export default function OnboardingTutorial({ onComplete }) {
               visualTheme={screen.visualTheme}
             />
 
+            <div className="briefing-channel-rail" aria-hidden />
+
             <BriefingDialoguePanel
               title={screen.title}
               body={screen.body}
