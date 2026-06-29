@@ -31,6 +31,8 @@ export const TUTORIAL_SCREENS = [
     id: 'welcome',
     title: 'Welcome',
     speaker: NARRATOR.speaker,
+    characterPose: 'default',
+    backgroundScreen: null,
     body: `Welcome to Regimen Arena.
 
 I’m the Stewardship Lead. My job is not to pick the biggest antimicrobial on the board. My job is to make the regimen fit the patient.
@@ -41,6 +43,8 @@ Every case you enter is a simulated infection course. The data will change. Your
     id: 'arena',
     title: 'What the Arena Represents',
     speaker: NARRATOR.speaker,
+    characterPose: 'default',
+    backgroundScreen: null,
     body: `The arena is a visual model of the patient’s infection state.
 
 Pathogen pressure, culture data, renal function, allergies, toxicity risk, source control, and clinical response all shape the field.
@@ -51,12 +55,16 @@ Some information will be known. Some will be pending. Some will become clearer o
     id: 'agents',
     title: 'Why Drugs Look Like Agents',
     speaker: NARRATOR.speaker,
+    characterPose: 'default',
+    backgroundScreen: null,
     body: DRUG_AGENT_EXPLANATION.body,
   },
   {
     id: 'decisions',
     title: 'How Decisions Work',
     speaker: NARRATOR.speaker,
+    characterPose: 'default',
+    backgroundScreen: null,
     body: `You’ll make decisions across the infection course.
 
 At first, you may need empiric coverage with incomplete data. Later, cultures, susceptibilities, response, and source control may let you narrow therapy.
@@ -67,6 +75,8 @@ The best move is not always escalation. Sometimes it is de-escalation. Sometimes
     id: 'judged',
     title: 'How You Are Judged',
     speaker: NARRATOR.speaker,
+    characterPose: 'default',
+    backgroundScreen: null,
     body: `Your choices are judged by clinical fit.
 
 Did you cover the likely pathogen when uncertainty was high?

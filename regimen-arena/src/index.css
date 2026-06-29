@@ -300,6 +300,187 @@ body {
 }
 
 /* ------------------------- */
+/* STEWARDSHIP LEAD BRIEFING */
+/* ------------------------- */
+
+.briefing-console {
+  position: relative;
+}
+
+.briefing-stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  background-color: #121820;
+  background-image:
+    linear-gradient(rgba(74, 158, 173, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 158, 173, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@media (min-width: 768px) {
+  .briefing-stage {
+    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+    min-height: 420px;
+  }
+}
+
+.briefing-character-zone {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 220px;
+  max-height: min(42vh, 360px);
+  padding: 1rem 1rem 0;
+  border-bottom: 1px solid rgba(42, 53, 68, 0.8);
+}
+
+@media (min-width: 768px) {
+  .briefing-character-zone {
+    max-height: none;
+    min-height: 420px;
+    padding: 1.5rem 0.75rem 0;
+    border-bottom: none;
+    border-right: 1px solid rgba(42, 53, 68, 0.6);
+  }
+}
+
+.briefing-character-glow {
+  position: absolute;
+  inset: 15% 8% 0;
+  background: radial-gradient(
+    ellipse at center bottom,
+    rgba(74, 158, 173, 0.22),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.briefing-character-frame {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+@media (min-width: 768px) {
+  .briefing-character-frame {
+    min-height: 380px;
+  }
+}
+
+.briefing-character-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: min(42vh, 340px);
+  height: auto;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
+}
+
+@media (min-width: 768px) {
+  .briefing-character-image {
+    max-height: 400px;
+    max-width: 95%;
+  }
+}
+
+.briefing-character-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  width: 100%;
+  border: 1px dashed #344559;
+  border-radius: 0.75rem;
+  background: #0f1419;
+}
+
+.briefing-dialogue-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 1.5rem;
+  background:
+    linear-gradient(135deg, rgba(74, 158, 173, 0.06) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(26, 34, 45, 0.95), rgba(21, 28, 38, 0.98));
+  border-top: 1px solid rgba(74, 158, 173, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 3px 0 0 rgba(74, 158, 173, 0.35);
+}
+
+@media (min-width: 768px) {
+  .briefing-dialogue-panel {
+    padding: 1.75rem 2rem 2rem;
+    border-top: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      inset 3px 0 0 rgba(74, 158, 173, 0.45),
+      -12px 0 32px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.briefing-dialogue-connector {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .briefing-dialogue-connector {
+    display: block;
+    position: absolute;
+    left: -1px;
+    top: 42%;
+    width: 14px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(74, 158, 173, 0.7));
+    transform: translateX(-100%);
+  }
+
+  .briefing-dialogue-connector::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 6px solid rgba(74, 158, 173, 0.55);
+    transform: translate(100%, -50%);
+  }
+}
+
+.briefing-dialogue-header {
+  padding-bottom: 0.875rem;
+  margin-bottom: 0.875rem;
+  border-bottom: 1px solid rgba(42, 53, 68, 0.8);
+}
+
+.briefing-transmit-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-cyan);
+  box-shadow: 0 0 8px rgba(74, 158, 173, 0.65);
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .briefing-transmit-dot {
+    animation: none;
+  }
+}
+
+/* ------------------------- */
 /* SPARKLINES */
 /* ------------------------- */
 
