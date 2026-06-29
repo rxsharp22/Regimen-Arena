@@ -1,25 +1,30 @@
 import { useState } from 'react'
 import { NARRATOR } from '../../data/onboardingContent'
-import { getPlayerBriefingImage, getPlayerVisual } from '../../data/visualAssets'
+import { getTutorialImage } from '../../data/tutorialAssets'
 
 export default function StewardshipLeadFigure({
-  characterPose = 'default',
+  imageKey = 'stewardshipLeadDefault',
+  imageAlt,
+  visualTheme,
   className = '',
 }) {
-  const asset = getPlayerVisual('stewardshipLead')
-  const imageUrl = getPlayerBriefingImage(characterPose)
+  const tutorialImage = getTutorialImage(imageKey)
+  const src = tutorialImage.src
+  const alt = imageAlt ?? tutorialImage.alt
   const [imageFailed, setImageFailed] = useState(false)
-  const altText = asset?.briefingAlt ?? 'Stewardship Lead character holding a clinical tablet.'
-  const showImage = imageUrl && !imageFailed
+  const showImage = src && !imageFailed
 
   return (
-    <div className={`briefing-character-zone ${className}`}>
+    <div
+      className={`briefing-character-zone ${className}`}
+      data-visual-theme={visualTheme ?? tutorialImage.theme}
+    >
       <div className="briefing-character-glow" aria-hidden />
       <div className="briefing-character-frame">
         {showImage ? (
           <img
-            src={imageUrl}
-            alt={altText}
+            src={src}
+            alt={alt}
             width={512}
             height={768}
             decoding="async"
@@ -27,11 +32,7 @@ export default function StewardshipLeadFigure({
             className="briefing-character-image"
           />
         ) : (
-          <div
-            className="briefing-character-fallback"
-            role="img"
-            aria-label={altText}
-          >
+          <div className="briefing-character-fallback" role="img" aria-label={alt}>
             <span className="text-2xl font-bold tracking-wide text-[#4a9ead]">
               {NARRATOR.initials}
             </span>

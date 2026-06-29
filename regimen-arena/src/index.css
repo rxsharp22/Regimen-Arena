@@ -384,6 +384,10 @@ body {
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
 }
 
+.briefing-sprite-image {
+  image-rendering: auto;
+}
+
 @media (min-width: 768px) {
   .briefing-character-image {
     max-height: 400px;

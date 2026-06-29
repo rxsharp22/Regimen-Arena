@@ -45,6 +45,22 @@ export const visualAssets = {
       primaryImage: `${VISUAL_BASE}/Zosyn-sidekick-sprite.png`,
       altImages: [`${VISUAL_BASE}/Zosyn_sprite.png`],
     },
+    cefepime: {
+      displayName: 'Cefepime',
+      role: 'Fourth-generation cephalosporin wall-breaker',
+      mechanism: 'Advanced beta-lactam cell-wall disruption',
+      spriteAlt: 'Cefepime antimicrobial agent sprite.',
+      primaryImage: `${VISUAL_BASE}/Cefepime_sprite.png`,
+      altImages: [],
+    },
+    linezolid: {
+      displayName: 'Linezolid',
+      role: '50S protein synthesis inhibitor',
+      mechanism: 'Protein synthesis inhibition — oxazolidinone',
+      spriteAlt: 'Linezolid antimicrobial agent sprite.',
+      primaryImage: `${VISUAL_BASE}/Linezolid_Sprite.png`,
+      altImages: [],
+    },
   },
 
   organisms: {
@@ -70,6 +86,10 @@ export const visualAssets = {
       primaryImage: `${VISUAL_BASE}/Player-character.png`,
       poses: {
         default: `${VISUAL_BASE}/Player-character.png`,
+        arenaOverview: `${VISUAL_BASE}/tutorial-animation-1.png`,
+        cultureData: `${VISUAL_BASE}/tutorial-animation-2.png`,
+        monitoring: `${VISUAL_BASE}/tutorial-animation-3.png`,
+        regimenPlan: `${VISUAL_BASE}/tutorial-animation-4.png`,
       },
       altImages: [],
     },
@@ -157,6 +177,12 @@ export function inferOrganismIdFromText(text) {
   if (lower.includes('mssa') || lower.includes('oxacillin-susceptible')) return 'mssa'
   if (lower.includes('staphylococcus aureus') || lower.includes('s. aureus')) return 'mssa'
   return null
+}
+
+export function getDrugSpriteAlt(drugId) {
+  const visual = getDrugVisual(drugId)
+  if (!visual) return null
+  return visual.spriteAlt ?? `${visual.displayName ?? drugId} antimicrobial agent sprite.`
 }
 
 export function getDrugVisualsForOption(option) {
