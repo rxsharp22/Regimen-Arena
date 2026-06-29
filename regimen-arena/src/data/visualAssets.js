@@ -51,7 +51,7 @@ export const visualAssets = {
     mssa: {
       displayName: 'MSSA',
       role: 'Susceptible Staphylococcus aureus',
-      primaryImage: null,
+      primaryImage: `${VISUAL_BASE}/MSSA_Sprite.png`,
       altImages: [],
     },
     mrsa: {
