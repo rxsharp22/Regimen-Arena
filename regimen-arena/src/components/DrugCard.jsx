@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { getDrugById, getSpectrumTagsForOption, optionRequiresRenalAdjustment } from '../utils/decisions'
 import { getRegimenCardMeta } from '../utils/regimenCard'
-import RegimenSpritePanel from './regimen/RegimenSpritePanel'
+import { MechanismEmblemRow } from './arena/MechanismEmblem'
 import CoverageChip from './regimen/CoverageChip'
 import MonitoringFlag from './regimen/MonitoringFlag'
 
@@ -75,9 +75,9 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
             )}
           </header>
 
-          {/* Tactical sprite tile */}
+          {/* Mechanism emblems — full sprites deploy in the infection arena */}
           {richLayout && (
-            <RegimenSpritePanel drugIds={option.drugs} />
+            <MechanismEmblemRow drugIds={option.drugs} />
           )}
 
           {/* Coverage chips */}

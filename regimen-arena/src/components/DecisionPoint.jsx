@@ -2,6 +2,8 @@ import { useState } from 'react'
 import DrugCardGrid from './DrugCardGrid'
 import ConfirmButton from './ConfirmButton'
 import { filterDp2Options } from '../utils/decisions'
+import { getArenaStageContext } from '../utils/arenaStage'
+import patient from '../data/patient.json'
 
 export default function DecisionPoint({
   decisionPoint,
@@ -9,6 +11,8 @@ export default function DecisionPoint({
   onConfirm,
   disabled,
   isProcessing = false,
+  phase,
+  conditionalEvents = [],
 }) {
   const [selectedId, setSelectedId] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
@@ -71,6 +75,10 @@ export default function DecisionPoint({
       ? oralSelectedId !== null
       : selectedId !== null
 
+  const arenaDirective = phase
+    ? getArenaStageContext({ phase, patient, conditionalEvents, activeDrugs }).directive
+    : null
+
   return (
     <section className="mt-8 space-y-4">
       <div>
@@ -83,6 +91,11 @@ export default function DecisionPoint({
         )}
         {decisionPoint.note && (
           <p className="text-xs text-[#8b9cb3] mt-1 italic">{decisionPoint.note}</p>
+        )}
+        {arenaDirective && (
+          <p className="text-xs text-[#4a9ead]/90 mt-2 leading-relaxed border-l-2 border-[#4a9ead]/30 pl-3">
+            {arenaDirective}
+          </p>
         )}
       </div>
 

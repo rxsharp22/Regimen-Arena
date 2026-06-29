@@ -280,6 +280,26 @@ body {
 }
 
 /* ------------------------- */
+/* INFECTION ARENA STAGE */
+/* ------------------------- */
+
+.arena-floor {
+  background-color: #121820;
+  background-image:
+    linear-gradient(rgba(74, 158, 173, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 158, 173, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.arena-deployment-lane {
+  border-top: 1px dashed rgba(74, 158, 173, 0.15);
+}
+
+.arena-agent-deploy {
+  box-shadow: inset 0 1px 0 rgba(74, 158, 173, 0.12);
+}
+
+/* ------------------------- */
 /* SPARKLINES */
 /* ------------------------- */
 
