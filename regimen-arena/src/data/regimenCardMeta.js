@@ -1,8 +1,63 @@
 /**
- * Clinical presentation metadata for regimen selection cards.
- * Arena Mode uses neutralLabel pre-decision; intent/coverage/flags for Guided Mode
- * and post-choice teaching.
+ * Post-choice stewardship teaching supplements.
+ * Pre-choice display derives drug class from drugs.json; do not render these before selection.
  */
+
+import { getDrugById } from '../utils/decisions'
+
+/** @type {Record<string, { drugClass?: string, stewardshipTeaching?: string }>} */
+export const optionDisplayMeta = {
+  opt_vanco_pip: {
+    drugClass: 'Glycopeptide + BL/BLI combination',
+  },
+  opt_vanco_cefepime: {
+    drugClass: 'Glycopeptide + 4th-generation cephalosporin',
+  },
+  opt_vanco_mono: {
+    drugClass: 'Glycopeptide',
+  },
+  opt_dapto_cefepime: {
+    drugClass: 'Lipopeptide + 4th-generation cephalosporin',
+  },
+  opt_cefazolin_mono: {
+    drugClass: 'First-generation cephalosporin',
+  },
+  opt_meropenem_vanco: {
+    drugClass: 'Carbapenem + glycopeptide combination',
+  },
+  opt_linezolid_mono: {
+    drugClass: 'Oxazolidinone',
+  },
+
+  dp03_cefazolin: {
+    stewardshipTeaching:
+      'Strong stewardship move. The organism is MSSA, blood cultures have cleared, and source control has been achieved. A focused anti-staphylococcal beta-lactam is generally preferred over continuing vancomycin when tolerated. The reported allergy history does not describe a high-risk immediate reaction or severe cutaneous reaction, so beta-lactam use should be considered rather than reflexively avoided.',
+  },
+  dp03_nafcillin: {
+    stewardshipTeaching:
+      'Clinically active for MSSA bacteremia. Antistaphylococcal penicillins carry more hepatotoxicity and phlebitis than cefazolin. This is a penicillin-class drug — reconcile the documented allergy history before use.',
+  },
+  dp03_oxacillin: {
+    stewardshipTeaching:
+      'Equivalent to nafcillin for MSSA bacteremia with similar adverse-effect considerations versus cefazolin. Reconcile the penicillin allergy history before use.',
+  },
+  dp03_continue_vancomycin: {
+    stewardshipTeaching:
+      'This is active against the isolate, but it may be a stewardship miss if the patient can receive a beta-lactam. For MSSA bacteremia, continuing vancomycin when a focused anti-staphylococcal beta-lactam is reasonable may preserve unnecessary toxicity and may be less optimal therapy.',
+  },
+  dp03_daptomycin: {
+    stewardshipTeaching:
+      'This avoids beta-lactams, but the allergy history should be interpreted before bypassing preferred beta-lactam therapy. Daptomycin may be reasonable when beta-lactams are not usable, but in this case it may represent unnecessary avoidance.',
+  },
+  dp03_linezolid: {
+    stewardshipTeaching:
+      'Linezolid is bacteriostatic and is not appropriate as primary therapy for active Staphylococcal bacteremia regardless of oral convenience or susceptibility results.',
+  },
+  dp03_tmp_smx: {
+    stewardshipTeaching:
+      'TMP-SMX has oral activity against susceptible MSSA but is premature as the primary agent before completing adequate IV bactericidal therapy for active bacteremia.',
+  },
+}
 
 export const drugMechanismLabels = {
   vancomycin: 'Cell-wall precursor binder',
@@ -17,133 +72,33 @@ export const drugMechanismLabels = {
   tmp_smx: 'Folate pathway inhibitor',
 }
 
-/** @type {Record<string, {
- *   neutralLabel: string,
- *   intent: string,
- *   coverage: string[],
- *   monitoringFlags: string[],
- *   teachingNotes?: string
- * }>} */
-export const regimenOptionMeta = {
-  opt_vanco_pip: {
-    neutralLabel: 'Glycopeptide + beta-lactam/BLI combination',
-    intent: 'Broad empiric coverage',
-    coverage: ['MRSA', 'MSSA', 'Gram-negative', 'Pseudomonas', 'Anaerobes'],
-    monitoringFlags: ['Renal dosing', 'Nephrotoxicity signal', 'Broad-spectrum pressure'],
-    teachingNotes:
-      'Provides broad gram-positive and gram-negative coverage including MRSA and Pseudomonas. The vancomycin + piperacillin-tazobactam pairing carries a well-characterized nephrotoxicity signal — especially relevant with baseline CKD and worsening renal function.',
-  },
-  opt_vanco_cefepime: {
-    neutralLabel: 'Glycopeptide + 4th-generation cephalosporin',
-    intent: 'MRSA + antipseudomonal coverage',
-    coverage: ['MRSA', 'MSSA', 'Gram-negative', 'Pseudomonas'],
-    monitoringFlags: ['Renal dosing', 'Vancomycin monitoring', 'Cefepime neurotoxicity caution'],
-    teachingNotes:
-      'Covers MRSA and broad gram-negatives including Pseudomonas while avoiding the vancomycin + pip-tazo nephrotoxicity interaction. Cefepime requires renal dose adjustment at reduced CrCl.',
-  },
-  opt_vanco_mono: {
-    neutralLabel: 'Glycopeptide monotherapy',
-    intent: 'MRSA-focused, limited Gram-negative coverage',
-    coverage: ['MRSA', 'MSSA', 'Enterococcus'],
-    monitoringFlags: ['Limited Gram-negative coverage', 'Vancomycin monitoring'],
-    teachingNotes:
-      'Covers gram-positives including MRSA but lacks routine gram-negative coverage for a polymicrobial diabetic foot source. Vancomycin AUC monitoring applies.',
-  },
-  opt_dapto_cefepime: {
-    neutralLabel: 'Lipopeptide + 4th-generation cephalosporin',
-    intent: 'Alternative MRSA agent + antipseudomonal coverage',
-    coverage: ['MRSA', 'MSSA', 'VRE', 'Gram-negative', 'Pseudomonas'],
-    monitoringFlags: ['CPK monitoring', 'Not for pneumonia', 'Renal dosing'],
-    teachingNotes:
-      'Daptomycin is inactivated by pulmonary surfactant and is not for pneumonia. Baseline and weekly CK monitoring required. Provides an alternative gram-positive strategy with cefepime for gram-negatives.',
-  },
-  opt_cefazolin_mono: {
-    neutralLabel: 'First-generation cephalosporin',
-    intent: 'Focused MSSA / streptococcal option',
-    coverage: ['MSSA', 'Strep'],
-    monitoringFlags: ['Not MRSA', 'Focused coverage', 'Allergy history matters'],
-    teachingNotes:
-      'Excellent MSSA agent once confirmed, but lacks MRSA coverage for empiric bacteremia with osteomyelitis. Penicillin allergy history should be reconciled before beta-lactam use.',
-  },
-  opt_meropenem_vanco: {
-    neutralLabel: 'Carbapenem + glycopeptide combination',
-    intent: 'Maximum-spectrum empiric coverage',
-    coverage: ['MRSA', 'MSSA', 'Gram-negative', 'Pseudomonas', 'Anaerobes', 'ESBL'],
-    monitoringFlags: ['Carbapenem stewardship alert', 'Renal dosing', 'Broad-spectrum pressure'],
-    teachingNotes:
-      'Extremely broad empiric spectrum including ESBL-capable organisms. Without documented MDR gram-negative risk factors, carbapenem empiric use represents unnecessary stewardship pressure.',
-  },
-  opt_linezolid_mono: {
-    neutralLabel: 'Oxazolidinone monotherapy',
-    intent: 'Gram-positive-only, bacteriostatic option',
-    coverage: ['MRSA', 'VRE'],
-    monitoringFlags: ['No Gram-negative coverage', 'Bacteriostatic for bacteremia', 'CBC monitoring'],
-    teachingNotes:
-      'Linezolid is bacteriostatic and lacks robust data for Staphylococcal bacteremia as monotherapy. No gram-negative coverage for a likely polymicrobial foot infection.',
-  },
-
-  dp03_cefazolin: {
-    neutralLabel: 'First-generation cephalosporin',
-    intent: 'Preferred MSSA de-escalation',
-    coverage: ['MSSA', 'Strep'],
-    monitoringFlags: ['Beta-lactam superior to vanco', 'Allergy history matters', 'Renal dosing'],
-    teachingNotes:
-      'Beta-lactams are clinically superior to vancomycin for MSSA bacteremia. Cefazolin is preferred given tolerability and the low-risk penicillin allergy phenotype on file.',
-  },
-  dp03_nafcillin: {
-    neutralLabel: 'Antistaphylococcal penicillin',
-    intent: 'Active antistaphylococcal penicillin',
-    coverage: ['MSSA', 'Strep'],
-    monitoringFlags: ['Penicillin-class drug', 'Hepatotoxicity risk', 'Allergy history matters'],
-    teachingNotes:
-      'Active for MSSA bacteremia but higher hepatotoxicity and phlebitis burden than cefazolin. Direct penicillin-class drug — allergy history must be reconciled.',
-  },
-  dp03_oxacillin: {
-    neutralLabel: 'Antistaphylococcal penicillin',
-    intent: 'Antistaphylococcal penicillin alternative',
-    coverage: ['MSSA', 'Strep'],
-    monitoringFlags: ['Penicillin-class drug', 'Hepatotoxicity risk', 'Allergy history matters'],
-    teachingNotes:
-      'Equivalent to nafcillin for MSSA. Same adverse-effect profile compared with cefazolin; penicillin allergy documentation required.',
-  },
-  dp03_continue_vancomycin: {
-    neutralLabel: 'Continue glycopeptide',
-    intent: 'Maintain current gram-positive agent',
-    coverage: ['MRSA', 'MSSA'],
-    monitoringFlags: ['Suboptimal for MSSA bacteremia', 'Vancomycin monitoring', 'Missed de-escalation'],
-    teachingNotes:
-      'Susceptibility to vancomycin does not make it the preferred MSSA agent. Failure to de-escalate to a beta-lactam when cultures support it is a stewardship miss.',
-  },
-  dp03_daptomycin: {
-    neutralLabel: 'Cyclic lipopeptide',
-    intent: 'Beta-lactam-sparing MSSA option',
-    coverage: ['MRSA', 'MSSA', 'VRE'],
-    monitoringFlags: ['CPK monitoring', 'Suboptimal allergy avoidance', 'Renal dosing'],
-    teachingNotes:
-      'Acceptable when beta-lactams are truly contraindicated. The documented childhood rash is a low-risk allergy phenotype — avoiding beta-lactams forfeits superior MSSA outcomes.',
-  },
-  dp03_linezolid: {
-    neutralLabel: 'Oxazolidinone',
-    intent: 'Oral-capable gram-positive agent',
-    coverage: ['MRSA', 'VRE'],
-    monitoringFlags: ['Bacteriostatic for bacteremia', 'Not for active bacteremia', 'CBC monitoring'],
-    teachingNotes:
-      'Linezolid is not appropriate for active Staphylococcal bacteremia regardless of susceptibility. Bacteriostatic activity and higher failure rates make this a critical error.',
-  },
-  dp03_tmp_smx: {
-    neutralLabel: 'Folate synthesis inhibitor',
-    intent: 'Oral step-down candidate',
-    coverage: ['MSSA', 'Strep'],
-    monitoringFlags: ['Premature for active bacteremia', 'Hyperkalemia risk', 'Renal dosing'],
-    teachingNotes:
-      'TMP-SMX has a role in oral step-down for bone infections but is premature as primary therapy before adequate IV bactericidal treatment of active bacteremia.',
-  },
+const DRUG_LIMITATIONS = {
+  daptomycin: 'Not for pneumonia — inactivated by pulmonary surfactant',
+  linezolid: 'Bacteriostatic agent',
 }
 
 export function getMechanismLabel(drugId) {
   return drugMechanismLabels[drugId] ?? null
 }
 
-export function getRegimenOptionMeta(optionId) {
-  return regimenOptionMeta[optionId] ?? null
+export function getOptionDisplayMeta(optionId) {
+  return optionDisplayMeta[optionId] ?? null
+}
+
+export function getNeutralDrugFacts(drugId) {
+  const drug = getDrugById(drugId)
+  if (!drug) return []
+
+  const facts = []
+  if (drug.mechanism_short) facts.push(drug.mechanism_short)
+  if (drug.renal_adjustment_required) {
+    facts.push('Renal dose adjustment may be required')
+  }
+  if (drug.monitoring?.length) {
+    facts.push(`Monitoring: ${drug.monitoring.join(', ')}`)
+  }
+  if (DRUG_LIMITATIONS[drugId]) {
+    facts.push(DRUG_LIMITATIONS[drugId])
+  }
+  return facts
 }

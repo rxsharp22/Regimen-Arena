@@ -95,7 +95,7 @@
       },
       {
         "id": "dp02_switch_dapto",
-        "label": "Discontinue vancomycin, transition to daptomycin given worsening AKI",
+        "label": "Discontinue vancomycin; transition to daptomycin",
         "applicable_if": ["vancomycin"],
         "outcome": "reasonable",
         "score_modifiers": { "safety": 8, "dosing": 8, "stewardship": 7 },
@@ -104,7 +104,7 @@
       },
       {
         "id": "dp02_reduce_cefepime",
-        "label": "Reduce cefepime dose for CrCl ~22 mL/min",
+        "label": "Reduce cefepime dose",
         "applicable_if": ["cefepime"],
         "outcome": "optimal",
         "score_modifiers": { "safety": 10, "dosing": 10 },
@@ -113,7 +113,7 @@
       },
       {
         "id": "dp02_reduce_pip_tazo",
-        "label": "Reduce piperacillin-tazobactam dose for worsening renal function",
+        "label": "Reduce piperacillin-tazobactam dose",
         "applicable_if": ["piperacillin_tazobactam"],
         "outcome": "reasonable",
         "score_modifiers": { "safety": 7, "dosing": 8 },
@@ -122,7 +122,7 @@
       },
       {
         "id": "dp02_dapto_dose_adjust",
-        "label": "Adjust daptomycin to every 48 hours given CrCl now below 30",
+        "label": "Adjust daptomycin to every 48 hours",
         "applicable_if": ["daptomycin"],
         "outcome": "optimal",
         "score_modifiers": { "safety": 10, "dosing": 10 },
@@ -131,7 +131,7 @@
       },
       {
         "id": "dp02_no_change",
-        "label": "No changes needed — continue current regimen as ordered",
+        "label": "Continue current regimen without changes",
         "applicable_if": ["any"],
         "outcome": "suboptimal",
         "score_modifiers": { "safety": 2, "dosing": 2 },
@@ -177,7 +177,7 @@
       },
       {
         "id": "dp03_continue_vancomycin",
-        "label": "Continue vancomycin — it is susceptible and the patient is improving",
+        "label": "Continue vancomycin IV",
         "drugs": ["vancomycin"],
         "outcome": "suboptimal",
         "score_modifiers": { "coverage": 6, "stewardship": 2, "deescalation": 0, "safety": 5 },
@@ -186,7 +186,7 @@
       },
       {
         "id": "dp03_daptomycin",
-        "label": "Transition to daptomycin — avoids beta-lactam allergy concern entirely",
+        "label": "Transition to daptomycin IV",
         "drugs": ["daptomycin"],
         "outcome": "acceptable",
         "score_modifiers": { "coverage": 8, "stewardship": 6, "deescalation": 6, "safety": 7 },
@@ -195,7 +195,7 @@
       },
       {
         "id": "dp03_linezolid",
-        "label": "Transition to linezolid IV/PO for ease of administration",
+        "label": "Transition to linezolid IV/PO",
         "drugs": ["linezolid"],
         "outcome": "unsafe",
         "score_modifiers": { "coverage": 3, "stewardship": 1, "deescalation": 0, "safety": 2 },
@@ -205,7 +205,7 @@
       },
       {
         "id": "dp03_tmp_smx",
-        "label": "Transition to TMP-SMX — susceptible and can be given orally",
+        "label": "Transition to TMP-SMX IV/PO",
         "drugs": ["tmp_smx"],
         "outcome": "suboptimal",
         "score_modifiers": { "coverage": 5, "stewardship": 4, "deescalation": 3, "safety": 6 },
@@ -252,7 +252,7 @@
       },
       {
         "id": "dp04_2wk_iv_oral",
-        "label": "2 weeks IV then oral step-down for convenience",
+        "label": "2 weeks IV, then oral step-down",
         "outcome": "suboptimal",
         "score_modifiers": { "duration": 3, "stewardship": 4, "source_control": 4 },
         "flags": ["insufficient_duration_osteo_bacteremia"],
@@ -260,7 +260,7 @@
       },
       {
         "id": "dp04_14_days_total",
-        "label": "14 days total — bacteremia is cleared and the patient is improving",
+        "label": "14 days total therapy",
         "outcome": "unsafe",
         "score_modifiers": { "duration": 0, "stewardship": 1, "source_control": 2 },
         "flags": ["critical_insufficient_duration"],
@@ -410,7 +410,7 @@
       },
       {
         "id": "mon_nothing",
-        "label": "No specific monitoring — the patient is improving and is being discharged",
+        "label": "No structured outpatient monitoring",
         "category": "none",
         "points": -5,
         "required": false,
