@@ -7,43 +7,75 @@ export const PLAYER_ROLE = {
     'You oversee antimicrobial selection, adjustment, monitoring, and narrowing as clinical data evolve.',
 }
 
+export const NARRATOR = {
+  speaker: 'Stewardship Lead',
+  initials: 'SL',
+}
+
 export const DRUG_AGENT_EXPLANATION = {
   title: 'Mechanism-based visual agents',
-  body: `Drug agents are visual mnemonics for antimicrobial mechanisms. A wall-breaker represents cell-wall disruption. A binding sentinel represents target binding. A membrane striker represents membrane disruption.
+  body: `Antimicrobials appear as mechanism-based agents.
 
-The art helps you remember the mechanism, but your choice must be based on the case.`,
+A wall-breaker represents cell-wall disruption. A binding sentinel represents target binding. A membrane striker represents membrane disruption.
+
+The visuals are mnemonics, not shortcuts. A powerful-looking agent can still be the wrong choice if the spectrum, toxicity, allergy history, or infection site does not fit.`,
 }
 
 export const ARENA_CAPTION =
   'This arena represents the patient’s infection state. Watch how new data changes the best regimen.'
 
+export const TUTORIAL_ACCESS_LABEL = 'About the Arena'
+
 export const TUTORIAL_SCREENS = [
   {
-    id: 'what',
-    title: 'What is Regimen Arena?',
-    body: 'Regimen Arena is a tactical antimicrobial stewardship simulator. You will manage infection cases as clinical data changes over time.',
-    highlight: PLAYER_ROLE.shortTitle,
+    id: 'welcome',
+    title: 'Welcome',
+    speaker: NARRATOR.speaker,
+    body: `Welcome to Regimen Arena.
+
+I’m the Stewardship Lead. My job is not to pick the biggest antimicrobial on the board. My job is to make the regimen fit the patient.
+
+Every case you enter is a simulated infection course. The data will change. Your decisions should change with it.`,
   },
   {
     id: 'arena',
-    title: 'What is the arena?',
-    body: 'The arena is a visual model of the patient’s infection course. It tracks organism pressure, cultures, source control, renal function, allergies, toxicity, and response.',
+    title: 'What the Arena Represents',
+    speaker: NARRATOR.speaker,
+    body: `The arena is a visual model of the patient’s infection state.
+
+Pathogen pressure, culture data, renal function, allergies, toxicity risk, source control, and clinical response all shape the field.
+
+Some information will be known. Some will be pending. Some will become clearer only after you commit to a plan.`,
   },
   {
     id: 'agents',
-    title: 'What are antimicrobial agents?',
-    body: `${DRUG_AGENT_EXPLANATION.body}
+    title: 'Why Drugs Look Like Agents',
+    speaker: NARRATOR.speaker,
+    body: DRUG_AGENT_EXPLANATION.body,
+  },
+  {
+    id: 'decisions',
+    title: 'How Decisions Work',
+    speaker: NARRATOR.speaker,
+    body: `You’ll make decisions across the infection course.
 
-Antimicrobials are represented as mechanism-based agents. Their appearance reflects class, mechanism, role, or monitoring burden — not raw power.`,
+At first, you may need empiric coverage with incomplete data. Later, cultures, susceptibilities, response, and source control may let you narrow therapy.
+
+The best move is not always escalation. Sometimes it is de-escalation. Sometimes it is monitoring. Sometimes it is recognizing that antibiotics alone are not enough.`,
   },
   {
-    id: 'goal',
-    title: 'What are you trying to do?',
-    body: `As ${PLAYER_ROLE.title}, choose therapy that fits the phase: empiric coverage when uncertainty is high, targeted therapy when cultures return, safe monitoring when therapy continues, and narrowing when stewardship allows.`,
-  },
-  {
-    id: 'rule',
-    title: 'Stewardship rule',
-    body: 'The broadest regimen is not always the best regimen. Every choice has tradeoffs. Control infection while minimizing unnecessary spectrum, toxicity, resistance pressure, and missed monitoring.',
+    id: 'judged',
+    title: 'How You Are Judged',
+    speaker: NARRATOR.speaker,
+    body: `Your choices are judged by clinical fit.
+
+Did you cover the likely pathogen when uncertainty was high?
+Did you narrow when the target became clear?
+Did you account for renal function, allergy history, toxicity, and route?
+Did you avoid unnecessary spectrum when the patient no longer needed it?
+
+That is the arena.
+
+Not combat for combat’s sake. Stewardship under pressure.`,
   },
 ]

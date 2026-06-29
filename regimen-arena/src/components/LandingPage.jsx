@@ -1,4 +1,5 @@
 import StewardshipLeadCard from './StewardshipLeadCard'
+import { TUTORIAL_ACCESS_LABEL } from '../data/onboardingContent'
 
 export default function LandingPage({ onEnter, onOpenTutorial }) {
 return ( <div className="max-w-5xl mx-auto">
@@ -195,7 +196,7 @@ Clinical Tactical Stewardship </p>
         onClick={onOpenTutorial}
         className="text-sm text-[#4a9ead] hover:text-[#5bb8c9] transition-colors"
       >
-        How Regimen Arena works →
+        {TUTORIAL_ACCESS_LABEL} →
       </button>
     )}
     <p className="text-center text-[10px] text-[#8b9cb3] uppercase tracking-widest">
