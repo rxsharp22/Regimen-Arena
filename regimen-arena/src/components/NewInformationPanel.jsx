@@ -1,3 +1,6 @@
+import VisualAssetDisplay from './VisualAssetDisplay'
+import { getOrganismVisual, inferOrganismIdFromText } from '../data/visualAssets'
+
 const TYPE_STYLES = {
   imaging: 'border-l-[#6b8cae]',
   lab: 'border-l-[#3d9a6e]',
@@ -39,7 +42,17 @@ export default function NewInformationPanel({ phase, conditionalEvents = [] }) {
         >
           <span className="text-[10px] uppercase tracking-wider text-[#8b9cb3]">{item.type}</span>
           {item.organism ? (
-            <div className="mt-1">
+            <div className="mt-1 flex gap-3 items-start">
+              {(() => {
+                const organismId =
+                  inferOrganismIdFromText(item.interpretation) ??
+                  inferOrganismIdFromText(item.organism)
+                const asset = organismId ? getOrganismVisual(organismId) : null
+                return asset ? (
+                  <VisualAssetDisplay asset={asset} size="md" className="shrink-0" />
+                ) : null
+              })()}
+              <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">{item.organism}</p>
               <p className="text-xs text-[#3d9a6e] mt-0.5">{item.interpretation}</p>
               <p className="text-xs text-[#8b9cb3] mt-1">{item.source}</p>
@@ -55,6 +68,7 @@ export default function NewInformationPanel({ phase, conditionalEvents = [] }) {
                   ))}
                 </div>
               )}
+              </div>
             </div>
           ) : (
             <p className="text-sm text-[#e8edf4] mt-1">{item.content}</p>
