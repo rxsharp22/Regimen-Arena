@@ -1,3 +1,5 @@
+import ArenaPremiseBrief from './arena/ArenaPremiseBrief'
+
 function DataRow({ label, value, highlight }) {
   return (
     <div className="flex justify-between gap-4 py-1.5 border-b border-[#2a3544]/50 last:border-0">
@@ -30,6 +32,8 @@ export default function ScenarioIntro({ scenario, patient, onBegin }) {
         <h1 className="text-3xl font-bold tracking-tight">{scenario.title}</h1>
         <p className="text-sm text-[#8b9cb3] max-w-2xl mx-auto leading-relaxed">{scenario.synopsis}</p>
       </header>
+
+      <ArenaPremiseBrief />
 
       <article className="bg-[#1a222d] border border-[#2a3544] rounded-xl panel-glow overflow-hidden">
         <header className="px-6 py-4 border-b border-[#2a3544] bg-[#151c26] flex flex-wrap items-center justify-between gap-3">

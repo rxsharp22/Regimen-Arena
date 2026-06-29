@@ -8,7 +8,8 @@ import ContinueButton from './ContinueButton'
 import CriticalErrorOverlay from './CriticalErrorOverlay'
 import ClinicalResponsePanel from './ClinicalResponsePanel'
 import NarrativeEventCard from './NarrativeEventCard'
-import { getDecisionPoint, getDrugById, scoreMonitoringPlan } from '../utils/decisions'
+import InfectionArenaPanel from './arena/InfectionArenaPanel'
+import { getDecisionPoint, scoreMonitoringPlan } from '../utils/decisions'
 
 const TRANSITION_CARDS = {
   0: {
@@ -173,18 +174,11 @@ export default function PhaseEngine({
         conditionalEvents={state.conditionalEvents}
       />
 
-      {state.activeDrugs.length > 0 && (
-        <div className="mt-6 px-4 py-3 rounded-lg border border-[#2a3544] bg-[#151c26]">
-          <p className="text-[10px] uppercase tracking-widest text-[#8b9cb3] mb-1">
-            Active Regimen
-          </p>
-          <p className="text-sm text-[#e8edf4]">
-            {state.activeDrugs
-              .map((id) => getDrugById(id)?.display_name ?? id.replace(/_/g, ' '))
-              .join(' + ')}
-          </p>
-        </div>
-      )}
+      <InfectionArenaPanel
+        phase={currentPhaseData}
+        activeDrugs={state.activeDrugs}
+        conditionalEvents={state.conditionalEvents}
+      />
 
       <DecisionPoint
         key={currentPhaseData.id}
@@ -193,6 +187,8 @@ export default function PhaseEngine({
         onConfirm={handleConfirm}
         disabled={state.showFeedback || isProcessing || !!battleState}
         isProcessing={isProcessing}
+        phase={currentPhaseData}
+        conditionalEvents={state.conditionalEvents}
       />
 
       {battleState && (
