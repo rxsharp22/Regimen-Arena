@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { getOptionDisplay } from '../utils/regimenCard'
+import { getDrugById } from '../utils/decisions'
+import { useAgentProfile } from '../context/AgentProfileContext'
 
 export default function DrugCard({ option, selected, disabled, onSelect, multiSelect }) {
+  const { openProfile } = useAgentProfile()
   const [showDetails, setShowDetails] = useState(false)
   const display = getOptionDisplay(option)
+  const drugIds = option?.drugs ?? []
 
   const handleSelect = () => {
     if (!disabled) onSelect(option.id)
@@ -87,6 +91,23 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
                   </ul>
                 </div>
               ))}
+              {drugIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {drugIds.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openProfile(id)
+                      }}
+                      className="text-[10px] text-[#4a9ead] hover:text-[#6bb8c7] transition-colors"
+                    >
+                      {getDrugById(id)?.display_name ?? id} agent profile →
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
