@@ -324,7 +324,7 @@
   },
   "dp_05_monitoring_plan": {
     "id": "dp_05_monitoring_plan",
-    "prompt": "The patient is ready for discharge. Select all monitoring elements you would include in the outpatient plan.",
+    "prompt": "Outpatient antimicrobial course is underway. Select all monitoring elements you would include in the outpatient plan.",
     "type": "multi_select",
     "instruction": "Build the outpatient monitoring plan for this patient.",
     "options": [

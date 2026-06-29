@@ -187,8 +187,6 @@ export default function PhaseEngine({
         onConfirm={handleConfirm}
         disabled={state.showFeedback || isProcessing || !!battleState}
         isProcessing={isProcessing}
-        phase={currentPhaseData}
-        conditionalEvents={state.conditionalEvents}
       />
 
       {battleState && (

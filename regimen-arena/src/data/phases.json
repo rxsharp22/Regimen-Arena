@@ -2,14 +2,14 @@
   {
     "id": "phase_01",
     "label": "T=0 — Admission",
-    "narrative": "The patient arrives to the ED with worsening right foot pain, purulent drainage, and visible bone at the wound base. Blood cultures have been drawn. Empiric antimicrobial therapy must be started before culture results are available.",
+    "narrative": "The patient arrives to the ED with worsening right foot pain, purulent drainage, and visible bone at the wound base. Blood cultures have been drawn; results are pending.",
     "new_information": [],
     "decision_point_id": "dp_01_empiric_regimen"
   },
   {
     "id": "phase_02",
     "label": "T=12 Hours",
-    "narrative": "MRI confirms osteomyelitis of the 5th metatarsal head with an adjacent soft tissue abscess. Renal function has worsened. Podiatry has been consulted and is scheduling debridement.",
+    "narrative": "MRI confirms osteomyelitis of the 5th metatarsal head with an adjacent soft tissue abscess. SCr is 2.3 mg/dL. Podiatry has been consulted and is scheduling debridement.",
     "new_information": [
       {
         "type": "imaging",
@@ -51,7 +51,7 @@
   {
     "id": "phase_04",
     "label": "T=5–7 Days",
-    "narrative": "The patient is showing clinical improvement. Repeat blood cultures are negative. Surgical debridement of the 5th metatarsal head has been completed and the bone biopsy has returned. Renal function is trending back toward baseline.",
+    "narrative": "Repeat blood cultures at 72 hours show no growth. Surgical debridement of the 5th metatarsal head has been completed. Bone biopsy confirms MSSA. SCr 1.7 mg/dL.",
     "new_information": [
       {
         "type": "microbiology",
@@ -71,7 +71,7 @@
   {
     "id": "phase_05",
     "label": "Discharge Planning",
-    "narrative": "The patient is medically stable and ready for discharge. An OPAT or oral step-down plan is in place. Build a monitoring plan for the outpatient course.",
+    "narrative": "Afebrile ×48h. Hemodynamically stable. Repeat blood cultures negative. Outpatient antimicrobial course in progress.",
     "new_information": [],
     "decision_point_id": "dp_05_monitoring_plan"
   }
