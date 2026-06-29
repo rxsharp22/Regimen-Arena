@@ -1,7 +1,6 @@
-import React from 'react'
 import StewardshipLeadCard from './StewardshipLeadCard'
 
-export default function LandingPage({ onEnter }) {
+export default function LandingPage({ onEnter, onOpenTutorial }) {
 return ( <div className="max-w-5xl mx-auto">
 {/* Hero Section */} <section className="text-center py-14"> <p className="text-[10px] uppercase tracking-[0.35em] text-[#5b9cff]">
 Clinical Tactical Stewardship </p>
@@ -189,10 +188,20 @@ Clinical Tactical Stewardship </p>
     </div>
   </div>
 
-  {/* Disclaimer */}
-  <p className="mt-12 text-center text-[10px] text-[#8b9cb3] uppercase tracking-widest">
-    Educational simulation only — not intended for patient care decisions
-  </p>
+  <div className="mt-10 flex flex-col items-center gap-3">
+    {onOpenTutorial && (
+      <button
+        type="button"
+        onClick={onOpenTutorial}
+        className="text-sm text-[#4a9ead] hover:text-[#5bb8c9] transition-colors"
+      >
+        How Regimen Arena works →
+      </button>
+    )}
+    <p className="text-center text-[10px] text-[#8b9cb3] uppercase tracking-widest">
+      Educational simulation only — not intended for patient care decisions
+    </p>
+  </div>
 </div>
 
 )

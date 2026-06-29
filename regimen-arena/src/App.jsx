@@ -6,7 +6,9 @@ import ScenarioIntro from './components/ScenarioIntro'
 import PhaseEngine from './components/PhaseEngine'
 import ScoreScreen from './components/ScoreScreen'
 import VisualGallery from './components/VisualGallery'
+import OnboardingTutorial from './components/onboarding/OnboardingTutorial'
 import { useGameState } from './hooks/useGameState'
+import { hasCompletedTutorial, markTutorialComplete } from './utils/onboardingStorage'
 
 function isVisualGalleryView() {
   if (typeof window === 'undefined') return false
@@ -45,6 +47,13 @@ export default function App() {
   } = useGameState()
 
   const [showGallery, setShowGallery] = useState(isVisualGalleryView)
+  const [showTutorial, setShowTutorial] = useState(false)
+  const [tutorialReady, setTutorialReady] = useState(false)
+
+  useEffect(() => {
+    setShowTutorial(!hasCompletedTutorial())
+    setTutorialReady(true)
+  }, [])
 
   useEffect(() => {
     const syncGallery = () => setShowGallery(isVisualGalleryView())
@@ -60,6 +69,23 @@ export default function App() {
   const handleCloseGallery = () => {
     closeVisualGallery()
     setShowGallery(false)
+  }
+
+  const handleTutorialComplete = () => {
+    markTutorialComplete()
+    setShowTutorial(false)
+  }
+
+  const handleOpenTutorial = () => {
+    setShowTutorial(true)
+  }
+
+  if (!tutorialReady) {
+    return null
+  }
+
+  if (showTutorial) {
+    return <OnboardingTutorial onComplete={handleTutorialComplete} />
   }
 
   if (showGallery) {
@@ -105,12 +131,19 @@ export default function App() {
               Visuals
             </button>
           )}
+          <button
+            type="button"
+            onClick={handleOpenTutorial}
+            className="text-[10px] uppercase tracking-widest text-[#8b9cb3] hover:text-[#4a9ead] transition-colors shrink-0"
+          >
+            How it works
+          </button>
         </div>
       </header>
 
       <main className="flex-1 p-4 md:p-8">
         {state.gameStatus === 'landing' && (
-          <LandingPage onEnter={beginIntro} />
+          <LandingPage onEnter={beginIntro} onOpenTutorial={handleOpenTutorial} />
         )}
 
         {state.gameStatus === 'intro' && (
