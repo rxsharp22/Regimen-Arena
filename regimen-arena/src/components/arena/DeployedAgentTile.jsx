@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { getDrugById } from '../../utils/decisions'
-import { getDrugVisual, getVisualImageUrl } from '../../data/visualAssets'
+import { getDrugVisual, getDrugSpriteAlt, getVisualImageUrl } from '../../data/visualAssets'
 import { getMechanismLabel } from '../../utils/regimenCard'
 
 export default function DeployedAgentTile({ drugId }) {
@@ -8,6 +8,7 @@ export default function DeployedAgentTile({ drugId }) {
   const drug = getDrugById(drugId)
   const visual = getDrugVisual(drugId)
   const imageUrl = getVisualImageUrl(visual)
+  const spriteAlt = getDrugSpriteAlt(drugId) ?? `${name} antimicrobial agent sprite.`
   const showImage = imageUrl && !imageFailed
   const mechanism = getMechanismLabel(drugId)
   const name = drug?.display_name ?? visual?.displayName ?? drugId
@@ -19,9 +20,9 @@ export default function DeployedAgentTile({ drugId }) {
           {showImage ? (
             <img
               src={imageUrl}
-              alt=""
+              alt={spriteAlt}
               onError={() => setImageFailed(true)}
-              className="max-h-12 max-w-full object-contain"
+              className="max-h-12 max-w-full object-contain briefing-sprite-image"
             />
           ) : (
             <span className="text-xs font-semibold text-[#4a9ead]/70">{name.slice(0, 3)}</span>

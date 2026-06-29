@@ -36,7 +36,11 @@ export default function OnboardingTutorial({ onComplete }) {
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         <article className="briefing-console w-full max-w-5xl bg-[#151c26] border border-[#2a3544] rounded-xl overflow-hidden shadow-[0_0_32px_rgba(0,0,0,0.35)]">
           <div className="briefing-stage">
-            <StewardshipLeadFigure characterPose={screen.characterPose ?? 'default'} />
+            <StewardshipLeadFigure
+              imageKey={screen.imageKey}
+              imageAlt={screen.imageAlt}
+              visualTheme={screen.visualTheme}
+            />
 
             <BriefingDialoguePanel
               title={screen.title}
