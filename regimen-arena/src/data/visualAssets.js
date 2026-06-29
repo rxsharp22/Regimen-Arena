@@ -42,8 +42,8 @@ export const visualAssets = {
       shortName: 'Pip-Tazo',
       role: 'Breacher + inhibitor support',
       mechanism: 'Beta-lactam wall activity plus beta-lactamase inhibition',
-      primaryImage: `${VISUAL_BASE}/Zosyn_Sprite.png`,
-      altImages: [`${VISUAL_BASE}/Zosyn-sidekick-sprite.png`],
+      primaryImage: `${VISUAL_BASE}/Zosyn-sidekick-sprite.png`,
+      altImages: [`${VISUAL_BASE}/Zosyn_sprite.png`],
     },
   },
 
