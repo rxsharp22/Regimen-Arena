@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { TUTORIAL_SCREENS, PLAYER_ROLE } from '../../data/onboardingContent'
+import { TUTORIAL_SCREENS, TUTORIAL_ACCESS_LABEL } from '../../data/onboardingContent'
+import StewardshipLeadNarrator from './StewardshipLeadNarrator'
 
 export default function OnboardingTutorial({ onComplete }) {
   const [step, setStep] = useState(0)
@@ -17,7 +18,7 @@ export default function OnboardingTutorial({ onComplete }) {
             <div>
               <h1 className="text-base font-bold tracking-tight">Regimen Arena</h1>
               <p className="text-[10px] text-[#8b9cb3] uppercase tracking-widest">
-                Orientation · Step {step + 1} of {TUTORIAL_SCREENS.length}
+                {TUTORIAL_ACCESS_LABEL} · Step {step + 1} of {TUTORIAL_SCREENS.length}
               </p>
             </div>
           </div>
@@ -32,18 +33,21 @@ export default function OnboardingTutorial({ onComplete }) {
       </header>
 
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-        <article className="w-full max-w-2xl bg-[#151c26] border border-[#2a3544] rounded-xl overflow-hidden">
+        <article className="w-full max-w-2xl bg-[#151c26] border border-[#2a3544] rounded-xl overflow-hidden shadow-[0_0_24px_rgba(0,0,0,0.25)]">
           <div className="px-6 py-4 border-b border-[#2a3544] bg-[#1a222d]">
             <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold">
-              {step === 0 ? `Your role: ${PLAYER_ROLE.title}` : 'Clinical simulation'}
+              Stewardship Lead briefing
             </p>
             <h2 className="text-2xl font-bold text-[#e8edf4] mt-1">{screen.title}</h2>
           </div>
 
-          <div className="px-6 py-6">
-            <p className="text-sm text-[#b8c5d6] leading-relaxed whitespace-pre-line">
-              {screen.body}
-            </p>
+          <div className="px-6 py-5 space-y-4">
+            <StewardshipLeadNarrator />
+            <blockquote className="border-l-2 border-[#4a9ead]/50 pl-4">
+              <p className="text-sm text-[#b8c5d6] leading-relaxed whitespace-pre-line">
+                {screen.body}
+              </p>
+            </blockquote>
           </div>
 
           <footer className="px-6 py-4 border-t border-[#2a3544] bg-[#1a222d]/80 flex flex-wrap items-center justify-between gap-3">

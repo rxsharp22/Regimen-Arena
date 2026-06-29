@@ -9,6 +9,7 @@ import VisualGallery from './components/VisualGallery'
 import OnboardingTutorial from './components/onboarding/OnboardingTutorial'
 import { useGameState } from './hooks/useGameState'
 import { hasCompletedTutorial, markTutorialComplete } from './utils/onboardingStorage'
+import { TUTORIAL_ACCESS_LABEL } from './data/onboardingContent'
 
 function isVisualGalleryView() {
   if (typeof window === 'undefined') return false
@@ -136,7 +137,7 @@ export default function App() {
             onClick={handleOpenTutorial}
             className="text-[10px] uppercase tracking-widest text-[#8b9cb3] hover:text-[#4a9ead] transition-colors shrink-0"
           >
-            How it works
+            {TUTORIAL_ACCESS_LABEL}
           </button>
         </div>
       </header>
