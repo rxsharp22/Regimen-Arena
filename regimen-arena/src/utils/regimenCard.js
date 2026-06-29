@@ -3,7 +3,9 @@ import {
   drugMechanismLabels,
   regimenOptionMeta,
   getMechanismLabel,
+  getRegimenOptionMeta,
 } from '../data/regimenCardMeta'
+import { isGuidedMode } from '../data/displayMode'
 
 const SPECTRUM_TAG_TO_CHIP = {
   MRSA: 'MRSA',
@@ -31,25 +33,43 @@ function deriveCoverageFromDrugs(drugIds) {
 
 export function getRegimenCardMeta(option) {
   const explicit = regimenOptionMeta[option?.id]
+  const guided = isGuidedMode()
+
   if (explicit) {
     return {
-      intent: explicit.intent,
+      subtitle: guided ? explicit.intent : explicit.neutralLabel,
       coverage: explicit.coverage,
       monitoringFlags: explicit.monitoringFlags,
+      showDetailsByDefault: guided,
       richLayout: Boolean(option?.drugs?.length),
     }
   }
 
   if (!option?.drugs?.length) {
-    return { richLayout: false }
+    return { richLayout: false, showDetailsByDefault: guided }
   }
 
   return {
-    intent: null,
+    subtitle: null,
     coverage: deriveCoverageFromDrugs(option.drugs),
     monitoringFlags: [],
+    showDetailsByDefault: guided,
     richLayout: true,
   }
+}
+
+export function getRegimenTeachingNotes(optionId) {
+  const meta = getRegimenOptionMeta(optionId)
+  if (!meta) return null
+
+  const parts = []
+  if (meta.intent) parts.push(`Regimen role: ${meta.intent}`)
+  if (meta.monitoringFlags?.length) {
+    parts.push(`Key considerations: ${meta.monitoringFlags.join(' · ')}`)
+  }
+  if (meta.teachingNotes) parts.push(meta.teachingNotes)
+
+  return parts.length > 0 ? parts.join('\n\n') : null
 }
 
 export function getMechanismLabelsForDrugs(drugIds = []) {

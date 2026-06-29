@@ -1,13 +1,8 @@
 import patientTimeline from '../data/patientTimeline.json'
 import { PHASE_ARENA_CONFIG, INFECTION_SITE_LABEL } from '../data/arenaStageMeta'
 import { inferOrganismIdFromText } from '../data/visualAssets'
-
-const STABILITY_LABELS = {
-  critical: 'Critical',
-  guarded: 'Guarded',
-  improving: 'Improving',
-  stable: 'Stable',
-}
+import { isGuidedMode } from '../data/displayMode'
+import patient from '../data/patient.json'
 
 const ADVERSE_TYPES = new Set(['toxicity_event', 'treatment_failure', 'relapse_event'])
 
@@ -22,74 +17,80 @@ function organismFromPhase(phase) {
       }
     }
     if (item.content?.includes('MSSA')) {
-      return { status: 'MSSA', organismId: 'mssa' }
+      return { status: 'Staphylococcus aureus — oxacillin susceptible', organismId: 'mssa' }
     }
   }
   return null
 }
 
-export function getArenaStageContext({ phase, patient, conditionalEvents = [], activeDrugs = [] }) {
+function formatAllergyFact(allergy) {
+  if (!allergy) return 'None documented'
+  return `Reported ${allergy.reaction} with ${allergy.allergen} (${allergy.onset}). No anaphylaxis, angioedema, or severe cutaneous reaction documented.`
+}
+
+function buildVitalsFact(vitals, trend) {
+  if (!vitals) return null
+  const trendNote = trend?.scr === 'up' ? ' · SCr ↑' : trend?.scr === 'down' ? ' · SCr ↓' : ''
+  return `T ${vitals.temp_c}°C · HR ${vitals.hr} · BP ${vitals.bp} · SCr ${vitals.scr} · WBC ${vitals.wbc}${trendNote}`
+}
+
+export function getArenaStageContext({ phase, conditionalEvents = [], activeDrugs = [] }) {
   const config = PHASE_ARENA_CONFIG[phase?.id] ?? {
     stageLabel: phase?.label ?? 'Clinical phase',
     cultureStatus: 'See chart update',
     organismStatus: 'See chart update',
     organismId: null,
     sourceControl: 'See clinical notes',
-    directive: phase?.narrative ?? '',
+    statusUpdate: phase?.narrative ?? '',
+    directiveGuided: phase?.narrative ?? '',
   }
 
   const timeline = patientTimeline[phase?.id]
   const organismFromChart = organismFromPhase(phase)
+  const guided = isGuidedMode()
 
   const organismStatus = organismFromChart?.status ?? config.organismStatus
   const organismId = organismFromChart?.organismId ?? config.organismId
 
-  const hasAdverse = conditionalEvents.some((e) => ADVERSE_TYPES.has(e.type))
-  const stabilityKey = hasAdverse ? 'critical' : timeline?.stability ?? 'guarded'
-
   const scr = timeline?.vitals?.scr ?? patient?.labs?.scr
   const crcl = patient?.labs?.crcl_estimated
-  const renalAlert = scr >= 2.0 || (timeline?.trend?.scr === 'up' && phase?.id !== 'phase_01')
 
   const modifiers = [
     {
       id: 'renal',
       label: 'Renal function',
-      value: scr ? `SCr ${scr} · CKD 3b` : `Est. CrCl ${crcl} mL/min`,
-      alert: renalAlert,
+      value: scr ? `SCr ${scr} mg/dL · baseline CKD 3b (CrCl ~${crcl} mL/min)` : `Est. CrCl ${crcl} mL/min`,
+      alert: false,
     },
     {
       id: 'allergy',
-      label: 'Allergy',
-      value: patient?.allergies?.[0]
-        ? `${patient.allergies[0].allergen} — ${patient.allergies[0].risk_level} risk`
-        : 'None documented',
-      alert: Boolean(patient?.allergies?.length),
+      label: 'Allergy history',
+      value: formatAllergyFact(patient?.allergies?.[0]),
+      alert: false,
     },
     {
-      id: 'stability',
-      label: 'Clinical stability',
-      value: STABILITY_LABELS[stabilityKey] ?? stabilityKey,
-      alert: stabilityKey === 'critical',
+      id: 'vitals',
+      label: 'Vitals / labs',
+      value: buildVitalsFact(timeline?.vitals, timeline?.trend) ?? 'See chart',
+      alert: false,
     },
     {
       id: 'source',
       label: 'Source control',
       value: config.sourceControl,
-      alert: phase?.id === 'phase_01' || phase?.id === 'phase_02',
+      alert: false,
     },
   ]
 
-  const pressures = []
-  if (timeline?.status_text) pressures.push(timeline.status_text)
+  const clinicalFacts = []
+  const vitalsFact = buildVitalsFact(timeline?.vitals, timeline?.trend)
+  if (vitalsFact) clinicalFacts.push(vitalsFact)
+  if (timeline?.status_text) clinicalFacts.push(timeline.status_text)
+
+  const hasAdverse = conditionalEvents.some((e) => ADVERSE_TYPES.has(e.type))
   if (hasAdverse) {
-    pressures.push(conditionalEvents.find((e) => ADVERSE_TYPES.has(e.type))?.content ?? 'Adverse event active')
-  }
-  if (renalAlert && phase?.id !== 'phase_05') {
-    pressures.push('Renal function requires dose vigilance')
-  }
-  if (patient?.allergies?.[0]?.risk_level === 'low') {
-    pressures.push('Low-risk penicillin allergy — reconcile before beta-lactam avoidance')
+    const event = conditionalEvents.find((e) => ADVERSE_TYPES.has(e.type))
+    if (event?.content) clinicalFacts.push(event.content)
   }
 
   return {
@@ -99,10 +100,10 @@ export function getArenaStageContext({ phase, patient, conditionalEvents = [], a
     organismStatus,
     organismId,
     sourceControl: config.sourceControl,
-    directive: config.directive,
+    statusUpdate: config.statusUpdate,
+    directive: guided ? (config.directiveGuided ?? config.statusUpdate) : config.statusUpdate,
     modifiers,
-    pressures,
+    clinicalFacts,
     deployedDrugIds: activeDrugs,
-    stabilityKey,
   }
 }

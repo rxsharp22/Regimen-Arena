@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { getDrugById, getSpectrumTagsForOption, optionRequiresRenalAdjustment } from '../utils/decisions'
 import { getRegimenCardMeta } from '../utils/regimenCard'
+import { isArenaMode } from '../data/displayMode'
 import { MechanismEmblemRow } from './arena/MechanismEmblem'
 import CoverageChip from './regimen/CoverageChip'
 import MonitoringFlag from './regimen/MonitoringFlag'
@@ -19,12 +20,13 @@ function DrugReferenceLine({ drugId }) {
 }
 
 export default function DrugCard({ option, selected, disabled, onSelect, multiSelect }) {
-  const [showRef, setShowRef] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
   const meta = getRegimenCardMeta(option)
   const spectrumTags = getSpectrumTagsForOption(option)
   const renalRequired = optionRequiresRenalAdjustment(option)
   const hasDrugs = Boolean(option.drugs?.length)
   const richLayout = hasDrugs && meta.richLayout !== false
+  const detailsOpen = showDetails || meta.showDetailsByDefault
 
   const handleSelect = () => {
     if (!disabled) onSelect(option.id)
@@ -67,21 +69,16 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
         )}
 
         <div className="flex-1 min-w-0 space-y-3">
-          {/* Header */}
           <header>
             <h4 className="font-semibold text-sm text-[#e8edf4] leading-snug">{option.label}</h4>
-            {meta.intent && (
-              <p className="text-[11px] text-[#4a9ead] mt-1 leading-snug">{meta.intent}</p>
+            {meta.subtitle && (
+              <p className="text-[11px] text-[#8b9cb3] mt-1 leading-snug">{meta.subtitle}</p>
             )}
           </header>
 
-          {/* Mechanism emblems — full sprites deploy in the infection arena */}
-          {richLayout && (
-            <MechanismEmblemRow drugIds={option.drugs} />
-          )}
+          {richLayout && <MechanismEmblemRow drugIds={option.drugs} />}
 
-          {/* Coverage chips */}
-          {meta.coverage?.length > 0 && (
+          {detailsOpen && meta.coverage?.length > 0 && (
             <div className="flex flex-wrap gap-1" aria-label="Spectrum coverage">
               {meta.coverage.map((chip) => (
                 <CoverageChip key={chip} label={chip} />
@@ -89,8 +86,7 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
             </div>
           )}
 
-          {/* Monitoring / tradeoff flags */}
-          {meta.monitoringFlags?.length > 0 && (
+          {detailsOpen && meta.monitoringFlags?.length > 0 && (
             <div className="flex flex-wrap gap-1" aria-label="Monitoring and tradeoffs">
               {meta.monitoringFlags.map((flag) => (
                 <MonitoringFlag key={flag} label={flag} />
@@ -98,20 +94,19 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
             </div>
           )}
 
-          {/* Drug reference toggle */}
           {!disabled && hasDrugs && (
             <span
               onClick={(e) => {
                 e.stopPropagation()
-                setShowRef((r) => !r)
+                setShowDetails((d) => !d)
               }}
               className="inline-block mt-1 text-[10px] text-[#4a9ead]/60 hover:text-[#4a9ead] transition-colors cursor-pointer select-none"
             >
-              {showRef ? 'Hide reference ↑' : 'Drug reference ↓'}
+              {detailsOpen ? 'Hide drug details ↑' : 'Drug details ↓'}
             </span>
           )}
 
-          {showRef && !disabled && hasDrugs && (
+          {detailsOpen && !disabled && hasDrugs && (
             <div className="pt-2 border-t border-[#2a3544]/60 space-y-1">
               {option.drugs.map((id) => (
                 <DrugReferenceLine key={id} drugId={id} />
@@ -129,13 +124,18 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
                 </div>
               )}
               {renalRequired && (
-                <p className="text-[10px] text-[#c9a227] mt-2">Renal adjustment required</p>
+                <p className="text-[10px] text-[#8b9cb3] mt-2">
+                  Renal dose adjustment may apply — verify CrCl
+                </p>
               )}
             </div>
           )}
 
-          {/* Compact fallback for non-drug options (e.g. dosing adjustments) */}
-          {!richLayout && !hasDrugs && option.flags?.length > 0 && (
+          {!richLayout && !hasDrugs && isArenaMode() && (
+            <p className="text-[10px] text-[#8b9cb3]">Clinical action option</p>
+          )}
+
+          {!richLayout && !hasDrugs && !isArenaMode() && option.flags?.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {option.flags.slice(0, 3).map((flag) => (
                 <MonitoringFlag key={flag} label={flag.replace(/_/g, ' ')} />
