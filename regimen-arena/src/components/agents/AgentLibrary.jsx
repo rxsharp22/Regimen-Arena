@@ -4,7 +4,7 @@ import { getDrugVisual, getVisualImageUrl } from '../../data/visualAssets'
 
 function AgentLibraryCard({ profile, onOpen }) {
   const visual = getDrugVisual(profile.id)
-  const imageUrl = getVisualImageUrl(visual)
+  const imageUrl = getVisualImageUrl(visual, profile.id)
 
   return (
     <button

@@ -208,7 +208,7 @@ export function getAgentProfile(drugId) {
   if (!drug && !ext) return null
 
   const visual = getDrugVisual(drugId)
-  const sprite = visual ? getVisualImageUrl(visual) : null
+  const sprite = visual ? getVisualImageUrl(visual, drugId) : null
 
   return {
     id: drugId,

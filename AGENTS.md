@@ -2,6 +2,14 @@
 
 Clinical decision simulation for antimicrobial stewardship. A single client-side React + Vite SPA; there is no backend, database, or other service.
 
+## Simulation direction (required reading)
+
+Before changing gameplay, scenario content, feedback UX, scoring, or visual metaphors, read and follow:
+
+**[docs/regimen-arena-simulation-rule.md](docs/regimen-arena-simulation-rule.md)**
+
+Regimen Arena is a **stateful antimicrobial stewardship simulation**, not a quiz app. During active gameplay, do not immediately label choices as correct, wrong, optimal, reasonable, or unsafe. Decisions should update hidden patient/infection/treatment/stewardship state; consequences should emerge over time through clinical data and narrative. Explicit teaching and grading belong primarily in the **final debrief**. Battle illustrations are optional teaching visuals, not the core game engine.
+
 ## Cursor Cloud specific instructions
 
 - The actual application lives in `regimen-arena/`, not the repo root. All npm commands must run from `regimen-arena/` (the repo root has no `package.json`).
