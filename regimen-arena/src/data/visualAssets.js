@@ -61,6 +61,31 @@ export const visualAssets = {
       primaryImage: `${VISUAL_BASE}/Linezolid_Sprite.png`,
       altImages: [],
     },
+    nafcillin: {
+      displayName: 'Nafcillin',
+      role: 'Penicillinase-resistant wall-breaker',
+      mechanism: 'Cell wall inhibition — penicillinase-resistant beta-lactam',
+      spriteAlt: 'Nafcillin antimicrobial agent sprite.',
+      primaryImage: `${VISUAL_BASE}/nafcillin-sprite.png`,
+      altImages: [],
+    },
+    oxacillin: {
+      displayName: 'Oxacillin',
+      role: 'Penicillinase-resistant wall-breaker',
+      mechanism: 'Cell wall inhibition — penicillinase-resistant beta-lactam',
+      spriteAlt: 'Oxacillin antimicrobial agent sprite.',
+      primaryImage: `${VISUAL_BASE}/oxacillin-sprite.png`,
+      altImages: [],
+    },
+    tmp_smx: {
+      displayName: 'TMP-SMX',
+      shortName: 'Bactrim',
+      role: 'Folate pathway inhibitor',
+      mechanism: 'Sequential folate pathway blockade',
+      spriteAlt: 'Sulfamethoxazole-trimethoprim antimicrobial agent sprite.',
+      primaryImage: `${VISUAL_BASE}/Bactrim-sprite.png`,
+      altImages: [],
+    },
   },
 
   organisms: {
@@ -103,6 +128,13 @@ const DRUG_ID_ALIASES = {
   'pip-tazo': 'piperacillin_tazobactam',
   'pip tazo': 'piperacillin_tazobactam',
   vanc: 'vancomycin',
+  bactrim: 'tmp_smx',
+  'tmp-smx': 'tmp_smx',
+  tmpsmx: 'tmp_smx',
+  'trimethoprim-sulfamethoxazole': 'tmp_smx',
+  'trimethoprim_sulfamethoxazole': 'tmp_smx',
+  'sulfamethoxazole-trimethoprim': 'tmp_smx',
+  'sulfamethoxazole_trimethoprim': 'tmp_smx',
 }
 
 const ORGANISM_ID_ALIASES = {

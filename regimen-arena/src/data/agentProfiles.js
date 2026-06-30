@@ -98,7 +98,7 @@ const PROFILE_EXTENSIONS = {
   },
   nafcillin: {
     visualMetaphor:
-      'Represented as a penicillinase-resistant wall-breaker in the agent taxonomy. No dedicated sprite asset yet.',
+      'Shown as a penicillinase-resistant wall-breaker. The design represents antistaphylococcal penicillin cell-wall disruption.',
     clinicalRole:
       'Antistaphylococcal penicillin active against MSSA and other susceptible Gram-positives.',
     keyLimitations: [
@@ -115,7 +115,7 @@ const PROFILE_EXTENSIONS = {
   },
   oxacillin: {
     visualMetaphor:
-      'Represented as a penicillinase-resistant wall-breaker in the agent taxonomy. No dedicated sprite asset yet.',
+      'Shown as a penicillinase-resistant wall-breaker. The design represents antistaphylococcal penicillin cell-wall disruption.',
     clinicalRole:
       'Antistaphylococcal penicillin with MSSA activity similar to nafcillin.',
     keyLimitations: [
@@ -164,7 +164,7 @@ const PROFILE_EXTENSIONS = {
   },
   tmp_smx: {
     visualMetaphor:
-      'Represented as a folate pathway inhibitor in the agent taxonomy. No dedicated sprite asset yet.',
+      'Shown as a folate pathway inhibitor. The design represents sequential blockade of folate synthesis rather than cell-wall disruption.',
     clinicalRole:
       'Activity against some Gram-positives and selected Gram-negatives with oral availability in susceptible isolates.',
     keyLimitations: [
