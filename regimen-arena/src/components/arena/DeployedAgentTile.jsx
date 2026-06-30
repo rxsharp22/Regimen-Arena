@@ -9,7 +9,7 @@ export default function DeployedAgentTile({ drugId }) {
   const [imageFailed, setImageFailed] = useState(false)
   const drug = getDrugById(drugId)
   const visual = getDrugVisual(drugId)
-  const imageUrl = getVisualImageUrl(visual)
+  const imageUrl = getVisualImageUrl(visual, drugId)
   const name = drug?.display_name ?? visual?.displayName ?? drugId
   const spriteAlt = getDrugSpriteAlt(drugId) ?? `${name} antimicrobial agent sprite.`
   const showImage = imageUrl && !imageFailed

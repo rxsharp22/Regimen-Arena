@@ -1,3 +1,5 @@
+import { getBundledDrugSpriteUrl } from './spriteUrls'
+
 const VISUAL_BASE = '/assets/visuals'
 
 export const visualAssets = {
@@ -66,7 +68,6 @@ export const visualAssets = {
       role: 'Penicillinase-resistant wall-breaker',
       mechanism: 'Cell wall inhibition — penicillinase-resistant beta-lactam',
       spriteAlt: 'Nafcillin antimicrobial agent sprite.',
-      primaryImage: `${VISUAL_BASE}/nafcillin-sprite.png`,
       altImages: [],
     },
     oxacillin: {
@@ -74,7 +75,6 @@ export const visualAssets = {
       role: 'Penicillinase-resistant wall-breaker',
       mechanism: 'Cell wall inhibition — penicillinase-resistant beta-lactam',
       spriteAlt: 'Oxacillin antimicrobial agent sprite.',
-      primaryImage: `${VISUAL_BASE}/oxacillin-sprite.png`,
       altImages: [],
     },
     tmp_smx: {
@@ -83,7 +83,6 @@ export const visualAssets = {
       role: 'Folate pathway inhibitor',
       mechanism: 'Sequential folate pathway blockade',
       spriteAlt: 'Sulfamethoxazole-trimethoprim antimicrobial agent sprite.',
-      primaryImage: `${VISUAL_BASE}/Bactrim-sprite.png`,
       altImages: [],
     },
   },
@@ -168,7 +167,15 @@ function resolveOrganismId(organismId) {
   return normalized
 }
 
-export function getVisualImageUrl(assetRecord) {
+export function getVisualImageUrl(assetRecord, drugId) {
+  if (drugId) {
+    const bundled = getBundledDrugSpriteUrl(drugId)
+    if (bundled) return bundled
+  }
+  if (assetRecord?.id) {
+    const bundled = getBundledDrugSpriteUrl(assetRecord.id)
+    if (bundled) return bundled
+  }
   if (!assetRecord) return null
   if (assetRecord.primaryImage) return assetRecord.primaryImage
   if (assetRecord.altImages?.length) return assetRecord.altImages[0]
@@ -179,7 +186,12 @@ export function getDrugVisual(drugId) {
   const id = resolveDrugId(drugId)
   const record = visualAssets.drugs[id]
   if (!record) return null
-  return { id, ...record }
+  const bundled = getBundledDrugSpriteUrl(id)
+  return {
+    id,
+    ...record,
+    primaryImage: bundled ?? record.primaryImage ?? null,
+  }
 }
 
 export function getOrganismVisual(organismId) {
