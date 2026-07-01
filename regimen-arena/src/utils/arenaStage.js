@@ -34,7 +34,7 @@ function buildVitalsFact(vitals, trend) {
   return `T ${vitals.temp_c}°C · HR ${vitals.hr} · BP ${vitals.bp} · SCr ${vitals.scr} · WBC ${vitals.wbc}${trendNote}`
 }
 
-export function getArenaStageContext({ phase, conditionalEvents = [], activeDrugs = [] }) {
+export function getArenaStageContext({ phase, conditionalEvents = [], activeDrugs = [], clinicalSnapshot = null }) {
   const config = PHASE_ARENA_CONFIG[phase?.id] ?? {
     stageLabel: phase?.label ?? 'Clinical phase',
     cultureStatus: 'See chart update',
@@ -49,18 +49,19 @@ export function getArenaStageContext({ phase, conditionalEvents = [], activeDrug
   const organismFromChart = organismFromPhase(phase)
   const guided = isGuidedMode()
 
-  const organismStatus = organismFromChart?.status ?? config.organismStatus
-  const organismId = organismFromChart?.organismId ?? config.organismId
+  const organismStatus = clinicalSnapshot?.organismStatus ?? organismFromChart?.status ?? config.organismStatus
+  const organismId = clinicalSnapshot?.organismId ?? organismFromChart?.organismId ?? config.organismId
 
-  const scr = timeline?.vitals?.scr ?? patient?.labs?.scr
+  const scr = clinicalSnapshot?.vitals?.scr ?? timeline?.vitals?.scr ?? patient?.labs?.scr
+  const wbc = clinicalSnapshot?.vitals?.wbc ?? timeline?.vitals?.wbc
   const crcl = patient?.labs?.crcl_estimated
 
   const modifiers = [
     {
       id: 'renal',
       label: 'Renal function',
-      value: scr ? `SCr ${scr} mg/dL · baseline CKD 3b (CrCl ~${crcl} mL/min)` : `Est. CrCl ${crcl} mL/min`,
-      alert: false,
+      value: clinicalSnapshot?.renalStatus ?? (scr ? `SCr ${scr} mg/dL · baseline CKD 3b (CrCl ~${crcl} mL/min)` : `Est. CrCl ${crcl} mL/min`),
+      alert: clinicalSnapshot?.renalWarning ?? false,
     },
     {
       id: 'allergy',
@@ -71,21 +72,25 @@ export function getArenaStageContext({ phase, conditionalEvents = [], activeDrug
     {
       id: 'vitals',
       label: 'Vitals / labs',
-      value: buildVitalsFact(timeline?.vitals, timeline?.trend) ?? 'See chart',
+      value: clinicalSnapshot
+        ? `T ${clinicalSnapshot.vitals.temp_c}°C · WBC ${wbc} · SCr ${scr}`
+        : buildVitalsFact(timeline?.vitals, timeline?.trend) ?? 'See chart',
       alert: false,
     },
     {
       id: 'source',
       label: 'Source control',
-      value: config.sourceControl,
-      alert: false,
+      value: clinicalSnapshot?.sourceControlLabel ?? config.sourceControl,
+      alert: clinicalSnapshot?.abscessUncontrolled ?? false,
     },
   ]
 
   const clinicalFacts = []
+  if (clinicalSnapshot?.woundStatus) clinicalFacts.push(clinicalSnapshot.woundStatus)
+  if (clinicalSnapshot?.cultureStatus) clinicalFacts.push(clinicalSnapshot.cultureStatus)
   const vitalsFact = buildVitalsFact(timeline?.vitals, timeline?.trend)
-  if (vitalsFact) clinicalFacts.push(vitalsFact)
-  if (timeline?.status_text) clinicalFacts.push(timeline.status_text)
+  if (vitalsFact && !clinicalSnapshot) clinicalFacts.push(vitalsFact)
+  if (timeline?.status_text && !clinicalSnapshot) clinicalFacts.push(timeline.status_text)
 
   const hasAdverse = conditionalEvents.some((e) => ADVERSE_TYPES.has(e.type))
   if (hasAdverse) {
@@ -96,14 +101,16 @@ export function getArenaStageContext({ phase, conditionalEvents = [], activeDrug
   return {
     infectionSite: INFECTION_SITE_LABEL,
     stageLabel: config.stageLabel,
-    cultureStatus: config.cultureStatus,
+    cultureStatus: clinicalSnapshot?.cultureStatus ?? config.cultureStatus,
     organismStatus,
     organismId,
-    sourceControl: config.sourceControl,
-    statusUpdate: config.statusUpdate,
-    directive: guided ? (config.directiveGuided ?? config.statusUpdate) : config.statusUpdate,
+    sourceControl: clinicalSnapshot?.sourceControlLabel ?? config.sourceControl,
+    statusUpdate: clinicalSnapshot?.statusText ?? config.statusUpdate,
+    directive: guided ? (config.directiveGuided ?? config.statusUpdate) : (clinicalSnapshot?.statusText ?? config.statusUpdate),
     modifiers,
     clinicalFacts,
     deployedDrugIds: activeDrugs,
+    renalWarning: clinicalSnapshot?.showRenalWarningIcon ?? false,
+    sourceControlTether: clinicalSnapshot?.showSourceControlTether ?? false,
   }
 }

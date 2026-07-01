@@ -8,27 +8,51 @@
   },
   {
     "id": "phase_02",
-    "label": "T=12 Hours",
-    "narrative": "MRI confirms osteomyelitis of the 5th metatarsal head with an adjacent soft tissue abscess. SCr is 2.3 mg/dL. Podiatry has been consulted and is scheduling debridement.",
+    "label": "T=12 Hours — Imaging & Cultures",
+    "narrative": "Overnight data return. MRI confirms osteomyelitis of the 5th metatarsal head with an adjacent soft tissue abscess. Blood cultures are positive.",
     "new_information": [
       {
         "type": "imaging",
         "content": "MRI right foot: osteomyelitis of 5th metatarsal head with adjacent soft tissue abscess confirmed."
       },
       {
-        "type": "lab",
-        "content": "SCr now 2.3 (up from 1.9 on admission). Estimated CrCl now approximately 22 mL/min."
+        "type": "microbiology",
+        "content": "Blood cultures ×2: Gram-positive cocci in clusters — identification pending."
       },
       {
+        "type": "lab",
+        "content": "SCr now 2.3 (up from 1.9 on admission). Estimated CrCl now approximately 22 mL/min."
+      }
+    ],
+    "decision_point_id": null
+  },
+  {
+    "id": "phase_03",
+    "label": "T=24 Hours — Source Control",
+    "narrative": "The patient remains febrile with persistent purulent drainage. Podiatry is available for surgical consultation. Source control is a critical next step for deep infection with bacteremia.",
+    "new_information": [
+      {
         "type": "consult",
-        "content": "Podiatry consulted. Debridement scheduled."
+        "content": "Podiatry available for urgent debridement. Abscess and osteomyelitis require source control."
+      }
+    ],
+    "decision_point_id": "dp_source_control"
+  },
+  {
+    "id": "phase_04",
+    "label": "T=36 Hours — Renal Dosing",
+    "narrative": "Renal function has worsened on empiric therapy. SCr is 2.3, estimated CrCl approximately 22 mL/min. Review your current regimen and adjust dosing as needed.",
+    "new_information": [
+      {
+        "type": "lab",
+        "content": "SCr 2.3 mg/dL. CrCl ~22 mL/min. Review renally cleared agents."
       }
     ],
     "decision_point_id": "dp_02_dose_reassessment"
   },
   {
-    "id": "phase_03",
-    "label": "T=36–48 Hours — Culture Reveal",
+    "id": "phase_05",
+    "label": "T=48 Hours — Culture Reveal",
     "narrative": "Blood culture results have finalized. The organism has been identified and susceptibilities are available.",
     "new_information": [
       {
@@ -49,29 +73,36 @@
     "decision_point_id": "dp_03_deescalation"
   },
   {
-    "id": "phase_04",
-    "label": "T=5–7 Days",
-    "narrative": "Repeat blood cultures at 72 hours show no growth. Surgical debridement of the 5th metatarsal head has been completed. Bone biopsy confirms MSSA. SCr 1.7 mg/dL.",
+    "id": "phase_06",
+    "label": "T=5–7 Days — Clinical Response",
+    "narrative": "Repeat blood cultures and wound assessment are available. The patient's clinical trajectory depends on source control, definitive therapy, and monitoring.",
     "new_information": [
       {
         "type": "microbiology",
-        "content": "Repeat blood cultures ×2 at 72 hours: No growth."
+        "content": "Repeat blood cultures at 72 hours — results per clinical course."
       },
       {
         "type": "procedure",
-        "content": "Surgical debridement completed. Bone biopsy result: MSSA, same susceptibility profile."
+        "content": "Surgical debridement status and bone biopsy results on chart."
       },
       {
         "type": "lab",
-        "content": "SCr 1.7, trending toward baseline. CrCl improving."
+        "content": "SCr trending per renal course. WBC and fever trend available."
       }
     ],
+    "decision_point_id": null
+  },
+  {
+    "id": "phase_07",
+    "label": "T=7–10 Days — Duration & Route",
+    "narrative": "With source control and culture data in hand, plan the duration and route of therapy for MSSA osteomyelitis with bacteremia.",
+    "new_information": [],
     "decision_point_id": "dp_04_duration_and_transition"
   },
   {
-    "id": "phase_05",
+    "id": "phase_08",
     "label": "Discharge Planning",
-    "narrative": "Afebrile ×48h. Hemodynamically stable. Repeat blood cultures negative. Outpatient antimicrobial course in progress.",
+    "narrative": "Outpatient antimicrobial course is being planned. Build the monitoring and OPAT structure for safe transition.",
     "new_information": [],
     "decision_point_id": "dp_05_monitoring_plan"
   }

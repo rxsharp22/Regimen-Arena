@@ -7,26 +7,44 @@
   },
   "phase_02": {
     "stability": "critical",
-    "vitals": { "temp_c": 38.5, "hr": 104, "bp": "108/72", "scr": 2.3, "wbc": 16.1 },
+    "vitals": { "temp_c": 38.7, "hr": 108, "bp": "104/70", "scr": 2.3, "wbc": 17.2 },
     "trend": { "hr": "down", "bp": "up", "scr": "up", "wbc": "down" },
-    "status_text": "SCr 2.3 mg/dL (up from 1.9). MRI: osteomyelitis of 5th metatarsal with adjacent abscess."
+    "status_text": "Blood cultures positive. MRI: osteomyelitis with adjacent abscess. SCr 2.3 mg/dL."
   },
   "phase_03": {
+    "stability": "critical",
+    "vitals": { "temp_c": 38.5, "hr": 104, "bp": "106/72", "scr": 2.3, "wbc": 16.5 },
+    "trend": { "hr": "down", "bp": "up", "scr": "stable", "wbc": "down" },
+    "status_text": "Persistent purulent drainage. Source control decision required."
+  },
+  "phase_04": {
+    "stability": "guarded",
+    "vitals": { "temp_c": 38.3, "hr": 100, "bp": "110/74", "scr": 2.3, "wbc": 15.0 },
+    "trend": { "hr": "down", "bp": "up", "scr": "up", "wbc": "down" },
+    "status_text": "SCr 2.3 mg/dL. Renal dosing reassessment needed."
+  },
+  "phase_05": {
     "stability": "guarded",
     "vitals": { "temp_c": 38.1, "hr": 96, "bp": "114/74", "scr": 2.1, "wbc": 13.2 },
     "trend": { "hr": "down", "bp": "up", "scr": "down", "wbc": "down" },
-    "status_text": "Blood culture: MSSA. Susceptibilities available. T 38.1°C."
+    "status_text": "Blood culture: MSSA. Susceptibilities available."
   },
-  "phase_04": {
+  "phase_06": {
+    "stability": "improving",
+    "vitals": { "temp_c": 37.6, "hr": 90, "bp": "118/76", "scr": 1.9, "wbc": 11.5 },
+    "trend": { "hr": "down", "bp": "up", "scr": "down", "wbc": "down" },
+    "status_text": "Clinical response phase — repeat cultures and wound status on chart."
+  },
+  "phase_07": {
     "stability": "improving",
     "vitals": { "temp_c": 37.4, "hr": 88, "bp": "122/76", "scr": 1.7, "wbc": 10.1 },
     "trend": { "hr": "down", "bp": "up", "scr": "down", "wbc": "down" },
-    "status_text": "Afebrile. Repeat blood cultures negative. Surgical debridement completed."
+    "status_text": "Plan duration and route for remaining antimicrobial course."
   },
-  "phase_05": {
+  "phase_08": {
     "stability": "stable",
     "vitals": { "temp_c": 37.1, "hr": 82, "bp": "126/78", "scr": 1.6, "wbc": 8.9 },
     "trend": { "hr": "stable", "bp": "stable", "scr": "down", "wbc": "down" },
-    "status_text": "Afebrile ×48h. Hemodynamically stable. Repeat blood cultures negative."
+    "status_text": "Discharge planning — outpatient monitoring and OPAT coordination."
   }
 }

@@ -1,74 +1,78 @@
-import { applyScoreModifiers, computeOutcomeTier } from './scoring'
+import { applyScoreModifiers } from './scoring'
 import { scoreMonitoringPlan } from './decisions'
+import {
+  processBoneDeepDecision,
+  finalizeBoneDeepSimulation,
+} from '../simulation/boneDeep'
 
-export function buildDecisionEffects(state, decisionPoint, option, phaseIndex) {
-  const phase = phaseIndex
+export function buildDecisionEffects(state, decisionPoint, option, phaseIndex, phaseData, subOption = null) {
+  const simResult = processBoneDeepDecision({
+    simulation: state.simulation,
+    eventLog: state.eventLog,
+    clinicalSnapshot: state.clinicalSnapshot,
+    decisionPoint,
+    option,
+    subOption,
+    phaseId: phaseData?.id,
+    phaseLabel: phaseData?.label,
+    informationAvailable: phaseData?.new_information ?? [],
+    activeDrugsBefore: state.activeDrugs,
+  })
+
   let score = state.score
-  let activeDrugs = [...state.activeDrugs]
-  let activeFlags = [...state.activeFlags]
   let criticalFlags = [...state.criticalFlags]
-  let outcome = option.outcome
-  let feedback = option.feedback ?? ''
 
   if (decisionPoint.type === 'multi_select') {
     const result = scoreMonitoringPlan(option.selectedIds, state.activeDrugs, decisionPoint, state.decisions)
     score = { ...score, monitoring: result.monitoringScore }
-    outcome = result.outcome
-    feedback = result.feedbackParts.filter(Boolean).join('\n\n')
     if (result.hasCritical) {
       criticalFlags.push('critical_no_monitoring_plan')
     }
     for (const id of option.selectedIds) {
       const opt = decisionPoint.options.find((o) => o.id === id)
       if (opt?.critical_flag) criticalFlags.push(opt.id)
-      if (opt?.flags) activeFlags.push(...opt.flags)
     }
-    activeFlags = [...new Set(activeFlags)]
     criticalFlags = [...new Set(criticalFlags)]
-
-    return {
-      score,
-      activeDrugs,
-      activeFlags,
-      criticalFlags,
-      outcome,
-      feedback,
-      optionLabel: result.selectedLabels.join('; ') || 'No selections',
+  } else {
+    if (option.score_modifiers) {
+      score = applyScoreModifiers(score, option.score_modifiers)
+    }
+    if (option.critical_flag) {
+      criticalFlags = [...new Set([...criticalFlags, option.id])]
     }
   }
 
-  if (option.score_modifiers) {
-    score = applyScoreModifiers(score, option.score_modifiers)
-  }
-
-  if (option.flags?.length) {
-    activeFlags = [...new Set([...activeFlags, ...option.flags])]
-  }
-
-  if (option.critical_flag) {
-    criticalFlags = [...new Set([...criticalFlags, option.id])]
-  }
-
-  if (option.drugs?.length) {
-    if (decisionPoint.id === 'dp_01_empiric_regimen' || decisionPoint.id === 'dp_03_deescalation') {
-      activeDrugs = [...option.drugs]
-    } else {
-      activeDrugs = [...new Set([...activeDrugs, ...option.drugs])]
-    }
-  }
+  const optionLabel =
+    decisionPoint.type === 'multi_select'
+      ? option.selectedIds
+          ?.map((id) => decisionPoint.options.find((o) => o.id === id)?.label)
+          .filter(Boolean)
+          .join('; ') || 'Monitoring plan'
+      : subOption
+        ? `${option.label} → ${subOption.label}`
+        : option.label
 
   return {
     score,
-    activeDrugs,
-    activeFlags,
+    activeDrugs: simResult.activeDrugs,
+    activeFlags: simResult.activeFlags,
     criticalFlags,
-    outcome,
-    feedback,
-    optionLabel: option.label,
+    simulation: simResult.simulation,
+    eventLog: simResult.eventLog,
+    clinicalSnapshot: simResult.clinicalSnapshot,
+    clinicalUpdate: simResult.clinicalUpdate,
+    optionLabel,
+    hiddenEffects: simResult.hiddenEffects,
   }
 }
 
+
 export function finalizeGame(state) {
-  const tier = computeOutcomeTier(state.score, state.scoreMaxes, state.criticalFlags)
-  return tier
+  const { debrief, outcomeTier } = finalizeBoneDeepSimulation(
+    state.simulation,
+    state.eventLog,
+    state.score,
+    state.criticalFlags
+  )
+  return { tier: outcomeTier, debrief }
 }

@@ -1,19 +1,22 @@
 import OutcomeTier from './OutcomeTier'
 import DimensionBars from './DimensionBars'
 import CriticalFlags from './CriticalFlags'
-import FeedbackLog from './FeedbackLog'
+import DebriefPanel from './DebriefPanel'
+import EventLogPanel from './EventLogPanel'
 
 export default function ScoreScreen({ state, onRestart }) {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <OutcomeTier tier={state.outcomeTier} />
 
+      {state.debrief && <DebriefPanel debrief={state.debrief} />}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <DimensionBars score={state.score} scoreMaxes={state.scoreMaxes} />
         <CriticalFlags flags={state.criticalFlags} />
       </div>
 
-      <FeedbackLog entries={state.feedbackLog} />
+      {state.debrief?.eventLog && <EventLogPanel eventLog={state.debrief.eventLog} />}
 
       <div className="flex justify-center pt-4">
         <button

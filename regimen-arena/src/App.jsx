@@ -134,7 +134,6 @@ function MainGame({ onOpenTutorial, onOpenAgentLibrary, onOpenGallery }) {
       {state.gameStatus === 'active' && currentPhaseData && (
         <PhaseEngine
           state={state}
-          phases={phases}
           currentPhaseData={currentPhaseData}
           totalPhases={totalPhases}
           onConfirmDecision={confirmDecision}

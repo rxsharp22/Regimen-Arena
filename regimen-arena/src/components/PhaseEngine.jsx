@@ -3,14 +3,14 @@ import PhaseHeader from './PhaseHeader'
 import PatientStatusPanel from './PatientStatusPanel'
 import NewInformationPanel from './NewInformationPanel'
 import DecisionPoint from './DecisionPoint'
-import FeedbackPanel from './FeedbackPanel'
+import ClinicalUpdatePanel from './ClinicalUpdatePanel'
 import ContinueButton from './ContinueButton'
 import CriticalErrorOverlay from './CriticalErrorOverlay'
 import ClinicalResponsePanel from './ClinicalResponsePanel'
 import NarrativeEventCard from './NarrativeEventCard'
 import InfectionArenaPanel from './arena/InfectionArenaPanel'
 import CaseBriefing from './onboarding/CaseBriefing'
-import { getDecisionPoint, scoreMonitoringPlan } from '../utils/decisions'
+import { getDecisionPoint } from '../utils/decisions'
 
 const TRANSITION_CARDS = {
   0: {
@@ -18,45 +18,40 @@ const TRANSITION_CARDS = {
     body: 'Broad-spectrum therapy is running.\nBlood cultures are incubating.\nThe next 48 hours will define what you are dealing with.',
   },
   1: {
-    headline: 'Day 2. Renal function worsens.',
-    body: 'Overnight labs return.\nCreatinine is up.\nYour choices from admission are now under pressure.',
+    headline: 'Overnight data return.',
+    body: 'MRI confirms osteomyelitis with abscess.\nBlood cultures are positive.\nSource control becomes urgent.',
   },
   2: {
-    headline: 'Day 3. The lab calls.',
-    body: 'Culture and sensitivity results are final.\nThe organism is identified.\nThe right drug exists.\nThe question is whether you will choose it.',
+    headline: 'Source control on the table.',
+    body: 'Purulent drainage persists.\nSurgical consultation is available.\nAntibiotics alone cannot sterilize uncontrolled bone infection.',
   },
   3: {
-    headline: 'Source controlled. Bacteremia cleared.',
-    body: 'Repeat cultures: no growth.\nDebridement complete.\nPlan the duration and route of what remains.',
+    headline: 'Renal function under pressure.',
+    body: 'Creatinine has risen on empiric therapy.\nDose adjustment decisions matter now.',
+  },
+  4: {
+    headline: 'The lab calls.',
+    body: 'Culture and sensitivity results are final.\nMSSA is identified.\nDefinitive therapy selection follows.',
+  },
+  5: {
+    headline: 'Clinical response emerges.',
+    body: 'Repeat cultures, wound status, and renal trend reflect prior decisions.\nConsequences appear through data, not grades.',
+  },
+  6: {
+    headline: 'Planning the home stretch.',
+    body: 'Source control and culture data inform duration and route.\nOPAT feasibility depends on monitoring and stability.',
   },
 }
 
 function consequenceHeadline(event) {
-  if (event.type === 'treatment_failure') return 'Treatment Failure.'
+  if (event.type === 'treatment_failure') return 'Treatment concern on chart.'
   if (event.type === 'relapse_event') return 'Relapse.'
-  return 'Adverse Event.'
-}
-
-function getBattleMeta(option, subOption, decisionPoint, activeDrugs) {
-  if (decisionPoint?.type === 'multi_select') {
-    const result = scoreMonitoringPlan(option.selectedIds, activeDrugs, decisionPoint, {})
-    const labels = decisionPoint.options
-      .filter((o) => option.selectedIds.includes(o.id))
-      .map((o) => o.label)
-    return {
-      outcome: result.outcome,
-      drugLabel: labels.join('; ') || 'Monitoring plan',
-    }
-  }
-  return {
-    outcome: subOption?.outcome ?? option.outcome,
-    drugLabel: subOption ? `${option.label} → ${subOption.label}` : option.label,
-  }
+  if (event.type === 'toxicity_event') return 'Adverse event.'
+  return 'Clinical update.'
 }
 
 export default function PhaseEngine({
   state,
-  phases,
   currentPhaseData,
   totalPhases,
   onConfirmDecision,
@@ -71,9 +66,14 @@ export default function PhaseEngine({
   const battleStateRef = useRef(null)
 
   const decisionPoint = useMemo(
-    () => getDecisionPoint(currentPhaseData?.decision_point_id),
+    () =>
+      currentPhaseData?.decision_point_id
+        ? getDecisionPoint(currentPhaseData.decision_point_id)
+        : null,
     [currentPhaseData]
   )
+
+  const isInfoOnlyPhase = !currentPhaseData?.decision_point_id
 
   useEffect(() => {
     setBattleState(null)
@@ -88,21 +88,32 @@ export default function PhaseEngine({
       setShowFeedbackText(false)
       setTimeout(() => {
         onConfirmDecision(decisionPoint, option, phaseIndex, subOption)
-        const meta = getBattleMeta(option, subOption, decisionPoint, state.activeDrugs)
-        battleStateRef.current = meta
-        setBattleState(meta)
+        const label = subOption
+          ? `${option.label} → ${subOption.label}`
+          : decisionPoint.type === 'multi_select'
+            ? 'Monitoring plan submitted'
+            : option.label
+        battleStateRef.current = { drugLabel: label, illustration: 'therapy_deployed' }
+        setBattleState(battleStateRef.current)
         setIsProcessing(false)
       }, 1200)
     },
-    [decisionPoint, onConfirmDecision, phaseIndex, state.activeDrugs]
+    [decisionPoint, onConfirmDecision, phaseIndex]
   )
 
   const handleBattleComplete = useCallback(() => {
     setShowFeedbackText(true)
-    if (battleStateRef.current?.outcome === 'unsafe') {
-      setShowCriticalOverlay(true)
+    if (state.criticalFlags.length > 0) {
+      const latestCritical = state.criticalFlags[state.criticalFlags.length - 1]
+      if (
+        latestCritical === 'critical_error_linezolid_bacteremia' ||
+        latestCritical === 'critical_insufficient_duration' ||
+        latestCritical === 'critical_no_monitoring_plan'
+      ) {
+        setShowCriticalOverlay(true)
+      }
     }
-  }, [])
+  }, [state.criticalFlags])
 
   const isFinalPhase = phaseIndex === totalPhases - 1
 
@@ -145,6 +156,10 @@ export default function PhaseEngine({
     onAdvance()
   }, [onAdvance])
 
+  const handleInfoOnlyContinue = useCallback(() => {
+    onAdvance()
+  }, [onAdvance])
+
   if (trailCard) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -164,10 +179,8 @@ export default function PhaseEngine({
       />
 
       <PatientStatusPanel
-        phaseId={currentPhaseData.id}
         conditionalEvents={state.conditionalEvents}
-        score={state.score}
-        scoreMaxes={state.scoreMaxes}
+        clinicalSnapshot={state.clinicalSnapshot}
       />
 
       <NewInformationPanel
@@ -183,33 +196,42 @@ export default function PhaseEngine({
         phase={currentPhaseData}
         activeDrugs={state.activeDrugs}
         conditionalEvents={state.conditionalEvents}
+        clinicalSnapshot={state.clinicalSnapshot}
       />
 
-      <DecisionPoint
-        key={currentPhaseData.id}
-        decisionPoint={decisionPoint}
-        activeDrugs={state.activeDrugs}
-        onConfirm={handleConfirm}
-        disabled={state.showFeedback || isProcessing || !!battleState}
-        isProcessing={isProcessing}
-      />
-
-      {battleState && (
-        <ClinicalResponsePanel
-          outcome={battleState.outcome}
-          drugLabel={battleState.drugLabel}
-          onComplete={handleBattleComplete}
-        />
-      )}
-
-      {showFeedbackText && (
-        <FeedbackPanel feedback={state.lastFeedback} />
-      )}
-
-      {showFeedbackText && (
-        <div className="mt-6 flex justify-end">
-          <ContinueButton onClick={handleAdvance} isFinal={isFinalPhase} />
+      {isInfoOnlyPhase ? (
+        <div className="mt-8 flex justify-end">
+          <ContinueButton onClick={handleInfoOnlyContinue} isFinal={isFinalPhase} />
         </div>
+      ) : (
+        <>
+          <DecisionPoint
+            key={currentPhaseData.id}
+            decisionPoint={decisionPoint}
+            activeDrugs={state.activeDrugs}
+            onConfirm={handleConfirm}
+            disabled={state.showFeedback || isProcessing || !!battleState}
+            isProcessing={isProcessing}
+          />
+
+          {battleState && (
+            <ClinicalResponsePanel
+              drugLabel={battleState.drugLabel}
+              illustration={
+                state.lastFeedback?.clinicalUpdate?.illustration ?? battleState.illustration
+              }
+              onComplete={handleBattleComplete}
+            />
+          )}
+
+          {showFeedbackText && <ClinicalUpdatePanel feedback={state.lastFeedback} />}
+
+          {showFeedbackText && (
+            <div className="mt-6 flex justify-end">
+              <ContinueButton onClick={handleAdvance} isFinal={isFinalPhase} />
+            </div>
+          )}
+        </>
       )}
 
       {showCriticalOverlay && (

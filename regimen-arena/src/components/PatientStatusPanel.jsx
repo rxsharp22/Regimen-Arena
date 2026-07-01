@@ -1,5 +1,3 @@
-import patientTimeline from '../data/patientTimeline.json'
-
 const STABILITY = {
   critical: { label: 'Critical', color: '#c45c5c' },
   guarded: { label: 'Guarded', color: '#c9a227' },
@@ -15,25 +13,19 @@ function trendArrow(trend) {
   return '→'
 }
 
-function trendColor(trend) {
-  if (trend === 'up') return '#c45c5c'
-  if (trend === 'down') return '#3d9a6e'
-  return '#8b9cb3'
+function trendColor(trend, invert = false) {
+  const isUp = trend === 'up'
+  const bad = invert ? !isUp : isUp
+  if (trend === 'stable') return '#8b9cb3'
+  return bad ? '#c45c5c' : '#3d9a6e'
 }
 
-function hpBarColor(hp) {
-  if (hp < 55) return '#c45c5c'
-  if (hp < 70) return '#c9a227'
-  if (hp < 85) return '#4a9ead'
-  return '#3d9a6e'
-}
-
-function VitalItem({ label, value, unit, trend }) {
+function VitalItem({ label, value, unit, trend, invertTrend = false }) {
   return (
     <span className="whitespace-nowrap">
       {label}: {value}
       {unit}
-      <span style={{ color: trendColor(trend) }} className="ml-0.5">
+      <span style={{ color: trendColor(trend, invertTrend) }} className="ml-0.5">
         {trendArrow(trend)}
       </span>
     </span>
@@ -41,42 +33,22 @@ function VitalItem({ label, value, unit, trend }) {
 }
 
 export default function PatientStatusPanel({
-  phaseId,
   conditionalEvents = [],
-  score = {},
-  scoreMaxes = {},
+  clinicalSnapshot = null,
 }) {
-  const base = patientTimeline[phaseId]
-  if (!base) return null
-
-  const total = Object.values(score).reduce((s, v) => s + v, 0)
-  const max = Object.values(scoreMaxes).reduce((s, v) => s + v, 0)
-  const hp = Math.min(85, Math.max(15, Math.round(35 + (max > 0 ? (total / max) * 50 : 0))))
-  const hpPct = hp
+  const snapshot = clinicalSnapshot
+  if (!snapshot) return null
 
   const hasAdverseEvent = conditionalEvents.some((e) => ADVERSE_EVENT_TYPES.has(e.type))
-  const stabilityKey = hasAdverseEvent ? 'critical' : base.stability
+  const stabilityKey = hasAdverseEvent ? 'critical' : snapshot.stability
   const stability = STABILITY[stabilityKey] ?? STABILITY.guarded
   const statusText = hasAdverseEvent
-    ? `${base.status_text} ⚠ Adverse event in progress.`
-    : base.status_text
-  const { vitals, trend } = base
+    ? `${snapshot.statusText} · Adverse event on chart.`
+    : snapshot.statusText
+  const { vitals, trend } = snapshot
 
   return (
     <div className="relative bg-[#151c26] border border-[#2a3544] rounded-lg px-4 py-3 mb-6 overflow-hidden">
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-[10px] uppercase tracking-widest text-[#8b9cb3] shrink-0">
-          Patient HP
-        </span>
-        <div className="flex-1 h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-1000"
-            style={{ width: `${hpPct}%`, backgroundColor: hpBarColor(hp) }}
-          />
-        </div>
-        <span className="text-[10px] text-[#8b9cb3] tabular-nums shrink-0">{hp}/100</span>
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <span
@@ -88,15 +60,26 @@ export default function PatientStatusPanel({
           <span className="text-xs text-[#8b9cb3]">{statusText}</span>
         </div>
         <div className="flex flex-wrap gap-x-1 gap-y-1 text-xs tabular-nums text-[#e8edf4] shrink-0">
-          <VitalItem label="T" value={vitals.temp_c} unit="°" trend="stable" />
+          <VitalItem label="T" value={vitals.temp_c} unit="°" trend={trend.temp} invertTrend />
           <span className="text-[#8b9cb3]">·</span>
           <VitalItem label="HR" value={vitals.hr} unit="" trend={trend.hr} />
           <span className="text-[#8b9cb3]">·</span>
-          <VitalItem label="BP" value={vitals.bp} unit="" trend={trend.bp} />
+          <VitalItem label="BP" value={vitals.bp} unit="" trend={trend.bp} invertTrend />
           <span className="text-[#8b9cb3]">·</span>
           <VitalItem label="SCr" value={vitals.scr} unit="" trend={trend.scr} />
+          <span className="text-[#8b9cb3]">·</span>
+          <VitalItem label="WBC" value={vitals.wbc} unit="" trend={trend.wbc} invertTrend />
         </div>
       </div>
+
+      {(snapshot.woundStatus || snapshot.dischargeStatus) && (
+        <div className="mt-2 pt-2 border-t border-[#2a3544]/50 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#b8c5d6]">
+          {snapshot.woundStatus && <span>Wound: {snapshot.woundStatus}</span>}
+          {snapshot.cultureStatus && <span>Cultures: {snapshot.cultureStatus}</span>}
+          {snapshot.dischargeStatus && <span>Disposition: {snapshot.dischargeStatus}</span>}
+        </div>
+      )}
+
       <div
         className="absolute bottom-0 left-0 right-0 h-[3px]"
         style={{ backgroundColor: stability.color }}
