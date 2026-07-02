@@ -69,6 +69,46 @@
       }
     ]
   },
+  "dp_source_control": {
+    "id": "dp_source_control",
+    "prompt": "MRI confirms osteomyelitis with an adjacent abscess and blood cultures are positive. What is your source-control plan?",
+    "type": "single_select",
+    "options": [
+      {
+        "id": "sc_prompt_debridement",
+        "label": "Urgent podiatry/surgical consult — schedule debridement",
+        "outcome": "optimal",
+        "score_modifiers": { "source_control": 9, "coverage": 7, "stewardship": 8 },
+        "flags": ["source_control_scheduled"],
+        "feedback": "Debridement scheduled for deep diabetic foot infection with abscess."
+      },
+      {
+        "id": "sc_urgent_or",
+        "label": "Take to OR today for incision, drainage, and debridement",
+        "outcome": "optimal",
+        "score_modifiers": { "source_control": 10, "coverage": 8, "stewardship": 8 },
+        "flags": ["source_control_achieved"],
+        "feedback": "Urgent operative source control for uncontrolled deep infection."
+      },
+      {
+        "id": "sc_delay_medical",
+        "label": "Continue antibiotics and reassess in 48–72 hours",
+        "outcome": "suboptimal",
+        "score_modifiers": { "source_control": 2, "coverage": 5, "stewardship": 3 },
+        "flags": ["source_control_delayed"],
+        "feedback": "Source control deferred despite abscess and osteomyelitis."
+      },
+      {
+        "id": "sc_conservative_wound_care",
+        "label": "Wound care and dressing changes only — no surgical consult",
+        "outcome": "unsafe",
+        "score_modifiers": { "source_control": 0, "coverage": 3, "stewardship": 1 },
+        "flags": ["inadequate_source_control"],
+        "critical_flag": true,
+        "feedback": "Deep infection with abscess requires surgical source control."
+      }
+    ]
+  },
   "dp_02_dose_reassessment": {
     "id": "dp_02_dose_reassessment",
     "prompt": "Renal function has worsened. SCr is 2.3, estimated CrCl now approximately 22 mL/min. Review your current regimen and adjust dosing as needed.",

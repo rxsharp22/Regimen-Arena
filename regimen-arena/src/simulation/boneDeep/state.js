@@ -1,0 +1,54 @@
+/** Hidden simulation state for Bone Deep — not rendered as numeric meters. */
+
+export function createInitialBoneDeepState() {
+  return {
+    scenarioTimeHours: 0,
+    patientStability: 35,
+    feverC: 38.9,
+    wbc: 18.4,
+    creatinine: 1.9,
+    renalTrend: 'worsening',
+    infectionBurden: 85,
+    bacteremiaStatus: 'positive_pending',
+    sourceControlStatus: 'uncontrolled_abscess',
+    cultureClearance: 'pending',
+    organismRevealed: false,
+    organismIdentity: null,
+    susceptibilityRevealed: false,
+    activeTherapy: [],
+    spectrumBurden: 0,
+    toxicityBurden: 0,
+    renalDoseAdjusted: false,
+    allergyStewardship: 'unaddressed',
+    betaLactamAccess: 'restricted_by_label',
+    deescalationScore: 0,
+    durationAdequacy: 0,
+    opatReadiness: 20,
+    dischargeReadiness: 10,
+    relapseRisk: 55,
+    mortalityRisk: 25,
+    akiOccurred: false,
+    persistentBacteremia: false,
+    treatmentFailure: false,
+    relapseOccurred: false,
+    transferredForSourceControl: false,
+    woundDrainage: 'purulent',
+    flags: [],
+    stewardshipDomains: {
+      coverage: 0,
+      safety: 0,
+      stewardship: 0,
+      dosing: 0,
+      deescalation: 0,
+      duration: 0,
+      monitoring: 0,
+      source_control: 0,
+    },
+    pendingConsequences: [],
+    triggeredConsequences: [],
+  }
+}
+
+export function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value))
+}

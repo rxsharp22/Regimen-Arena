@@ -1,4 +1,3 @@
-import patient from '../../data/patient.json'
 import scenario from '../../data/scenario.json'
 import { getArenaStageContext } from '../../utils/arenaStage'
 import { ARENA_CAPTION } from '../../data/onboardingContent'
@@ -31,11 +30,13 @@ export default function InfectionArenaPanel({
   phase,
   activeDrugs = [],
   conditionalEvents = [],
+  clinicalSnapshot = null,
 }) {
   const ctx = getArenaStageContext({
     phase,
     conditionalEvents,
     activeDrugs,
+    clinicalSnapshot,
   })
 
   const organismAsset = ctx.organismId ? getOrganismVisual(ctx.organismId) : null
@@ -149,6 +150,20 @@ export default function InfectionArenaPanel({
       <footer className="px-4 py-3 border-t border-[#2a3544] bg-[#1a222d]/80">
         <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] mb-1">{footerLabel}</p>
         <p className="text-sm text-[#b8c5d6] leading-relaxed">{ctx.directive}</p>
+        {(ctx.renalWarning || ctx.sourceControlTether) && (
+          <div className="mt-2 flex flex-wrap gap-3">
+            {ctx.renalWarning && (
+              <span className="text-[10px] text-[#c9a227] flex items-center gap-1">
+                <span aria-hidden>⚠</span> Renal monitoring indicated
+              </span>
+            )}
+            {ctx.sourceControlTether && (
+              <span className="text-[10px] text-[#c45c5c] flex items-center gap-1">
+                <span aria-hidden>⟳</span> Uncontrolled infection source
+              </span>
+            )}
+          </div>
+        )}
       </footer>
     </section>
   )
