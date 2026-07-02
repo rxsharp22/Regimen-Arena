@@ -542,7 +542,13 @@ export function applyMonitoringDecision(state, selectedIds, activeDrugs, decisio
 
   next.stewardshipDomains = applyStewardshipDomains(next, { monitoring: monitoringScore })
 
-  return { state: next, hiddenEffects, monitoringScore }
+  return {
+    state: next,
+    hiddenEffects,
+    flags: next.flags,
+    pendingConsequences: next.pendingConsequences,
+    monitoringScore,
+  }
 }
 
 export function applyBoneDeepDecision(state, decisionPoint, option, subOption = null, activeDrugsBefore = []) {

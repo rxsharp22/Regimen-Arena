@@ -19,13 +19,13 @@ export function createEventLogEntry({
     phaseLabel,
     decisionId,
     optionId,
-    optionIds: [...optionIds],
+    optionIds: [...(optionIds ?? [])],
     decisionLabel,
     informationAvailable,
-    activeRegimen: [...activeRegimen],
-    hiddenEffects,
-    flags: [...flags],
-    pendingConsequences: [...pendingConsequences],
+    activeRegimen: [...(activeRegimen ?? [])],
+    hiddenEffects: hiddenEffects ?? [],
+    flags: [...(flags ?? [])],
+    pendingConsequences: [...(pendingConsequences ?? [])],
     laterConsequences: [],
   }
 }

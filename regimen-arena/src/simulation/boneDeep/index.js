@@ -32,7 +32,7 @@ export function processBoneDeepDecision({
           .join('; ') || 'Monitoring plan'
       : option.label
 
-  const { state: nextSim, hiddenEffects, flags, pendingConsequences, monitoringScore } =
+  const { state: nextSim, hiddenEffects, flags = [], pendingConsequences = [], monitoringScore } =
     applyBoneDeepDecision(simulation, decisionPoint, option, subOption, activeDrugsBefore)
 
   const activeRegimen =
