@@ -28,21 +28,29 @@ function stewardshipPerformance(domains) {
   }))
 }
 
+function chosenOptionIds(eventLog) {
+  return new Set(
+    eventLog.flatMap((entry) =>
+      entry.optionIds?.length ? entry.optionIds : entry.optionId ? [entry.optionId] : []
+    )
+  )
+}
+
 function identifySuccesses(eventLog, state) {
   const successes = []
-  for (const entry of eventLog) {
-    if (entry.decisionId === 'dp03_cefazolin') {
-      successes.push('De-escalated to cefazolin for MSSA bacteremia with low-risk allergy reconciliation')
-    }
-    if (entry.decisionId === 'sc_urgent_or' || entry.decisionId === 'sc_prompt_debridement') {
-      successes.push('Prioritized surgical source control for deep foot infection')
-    }
-    if (entry.decisionId === 'dp02_vanco_extend_interval' || entry.decisionId === 'dp02_reduce_cefepime') {
-      successes.push('Adjusted antimicrobial dosing for worsening renal function')
-    }
-    if (entry.decisionId === 'dp04_6wk_iv_opat') {
-      successes.push('Planned adequate duration with OPAT for osteomyelitis with bacteremia')
-    }
+  const optionIds = chosenOptionIds(eventLog)
+
+  if (optionIds.has('dp03_cefazolin')) {
+    successes.push('De-escalated to cefazolin for MSSA bacteremia with low-risk allergy reconciliation')
+  }
+  if (optionIds.has('sc_urgent_or') || optionIds.has('sc_prompt_debridement')) {
+    successes.push('Prioritized surgical source control for deep foot infection')
+  }
+  if (optionIds.has('dp02_vanco_extend_interval') || optionIds.has('dp02_reduce_cefepime')) {
+    successes.push('Adjusted antimicrobial dosing for worsening renal function')
+  }
+  if (optionIds.has('dp04_6wk_iv_opat')) {
+    successes.push('Planned adequate duration with OPAT for osteomyelitis with bacteremia')
   }
   if (state.renalDoseAdjusted && !state.akiOccurred) {
     successes.push('Maintained renal safety through dose adjustment')
@@ -55,23 +63,23 @@ function identifySuccesses(eventLog, state) {
 
 function identifyMissedOpportunities(eventLog, state) {
   const missed = []
-  const decisionIds = new Set(eventLog.map((e) => e.decisionId))
+  const optionIds = chosenOptionIds(eventLog)
 
-  if (!decisionIds.has('dp03_cefazolin') && state.organismIdentity === 'MSSA') {
-    if (decisionIds.has('dp03_continue_vancomycin')) {
+  if (!optionIds.has('dp03_cefazolin') && state.organismIdentity === 'MSSA') {
+    if (optionIds.has('dp03_continue_vancomycin')) {
       missed.push('Did not de-escalate to beta-lactam therapy for confirmed MSSA bacteremia')
     }
-    if (decisionIds.has('dp03_daptomycin')) {
+    if (optionIds.has('dp03_daptomycin')) {
       missed.push('Avoided beta-lactam despite low-risk penicillin allergy history')
     }
   }
-  if (decisionIds.has('sc_delay_medical') || decisionIds.has('sc_conservative_wound_care')) {
+  if (optionIds.has('sc_delay_medical') || optionIds.has('sc_conservative_wound_care')) {
     missed.push('Delayed or inadequate source control for abscess and osteomyelitis')
   }
-  if (decisionIds.has('dp02_no_change')) {
+  if (optionIds.has('dp02_no_change')) {
     missed.push('Failed to adjust renally cleared agents during AKI')
   }
-  if (decisionIds.has('dp04_14_days_total') || decisionIds.has('dp04_2wk_iv_oral')) {
+  if (optionIds.has('dp04_14_days_total') || optionIds.has('dp04_2wk_iv_oral')) {
     missed.push('Planned insufficient total duration for osteomyelitis with bacteremia')
   }
   if (state.flags.includes('critical_no_monitoring_plan')) {
@@ -86,7 +94,7 @@ function turningPoints(eventLog, state) {
     if (entry.decisionId === 'dp_01_empiric_regimen') {
       points.push({ time: entry.scenarioTimeHours, text: `Empiric therapy selected: ${entry.decisionLabel}` })
     }
-    if (entry.decisionId?.startsWith('sc_')) {
+    if (entry.decisionId === 'dp_source_control') {
       points.push({ time: entry.scenarioTimeHours, text: `Source control decision: ${entry.decisionLabel}` })
     }
     if (entry.decisionId === 'dp_03_deescalation') {

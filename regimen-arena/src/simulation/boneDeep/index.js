@@ -38,11 +38,18 @@ export function processBoneDeepDecision({
   const activeRegimen =
     nextSim.activeTherapy.length > 0 ? nextSim.activeTherapy : activeDrugsBefore
 
+  const optionIds =
+    decisionPoint.type === 'multi_select'
+      ? option.selectedIds ?? []
+      : [option.id, subOption?.id].filter(Boolean)
+
   const logEntry = createEventLogEntry({
     scenarioTimeHours: nextSim.scenarioTimeHours,
     phaseId,
     phaseLabel,
     decisionId: decisionPoint.id,
+    optionId: decisionPoint.type === 'multi_select' ? null : option.id ?? null,
+    optionIds,
     decisionLabel,
     informationAvailable,
     activeRegimen,

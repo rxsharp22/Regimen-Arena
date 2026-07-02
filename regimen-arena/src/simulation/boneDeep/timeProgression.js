@@ -98,6 +98,21 @@ function resolvePendingConsequences(state) {
   return { state: next, triggered }
 }
 
+function applyOptimalCourseStabilityBonus(state) {
+  const bacteremiaControlled =
+    state.bacteremiaStatus === 'cleared' ||
+    state.cultureClearance === 'cleared' ||
+    state.deescalationScore >= 8
+
+  if (
+    state.sourceControlStatus === 'completed' &&
+    state.renalDoseAdjusted &&
+    bacteremiaControlled
+  ) {
+    state.patientStability = clamp(state.patientStability + 1, 0, 100)
+  }
+}
+
 function applyNaturalProgression(state, phaseId) {
   let next = { ...state }
   const narratives = []
@@ -115,19 +130,19 @@ function applyNaturalProgression(state, phaseId) {
       break
     case 'phase_04':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_04
-      next.organismRevealed = true
-      next.organismIdentity = 'MSSA'
-      next.susceptibilityRevealed = true
       if (next.renalDoseAdjusted) {
         next.creatinine = clamp(next.creatinine - 0.1, 1.2, 4.5)
       } else if (next.toxicityBurden > 6) {
         next.creatinine = clamp(next.creatinine + 0.2, 1.2, 4.5)
         next.renalTrend = 'worsening'
       }
-      narratives.push('Organism identified: MSSA with beta-lactam susceptibility.')
       break
     case 'phase_05':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_05
+      next.organismRevealed = true
+      next.organismIdentity = 'MSSA'
+      next.susceptibilityRevealed = true
+      narratives.push('Organism identified: MSSA with beta-lactam susceptibility.')
       if (next.deescalationScore >= 8 && next.sourceControlStatus === 'completed') {
         next.bacteremiaStatus = 'cleared'
         next.cultureClearance = 'cleared'
@@ -138,10 +153,6 @@ function applyNaturalProgression(state, phaseId) {
         next.bacteremiaStatus = 'persistent'
         next.cultureClearance = 'positive'
         narratives.push('Repeat blood cultures remain positive.')
-      } else if (next.bacteremiaStatus === 'clearing' || next.bacteremiaStatus === 'clearing_slow') {
-        next.bacteremiaStatus = 'cleared'
-        next.cultureClearance = 'cleared'
-        narratives.push('Repeat blood cultures at 72 hours: no growth.')
       } else {
         narratives.push('Blood cultures under evaluation.')
       }
@@ -157,6 +168,7 @@ function applyNaturalProgression(state, phaseId) {
       if (next.akiOccurred && next.renalDoseAdjusted) {
         narratives.push('Renal function recovering after dose adjustment.')
       }
+      applyOptimalCourseStabilityBonus(next)
       break
     case 'phase_07':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_07
@@ -164,6 +176,7 @@ function applyNaturalProgression(state, phaseId) {
         next.dischargeReadiness = clamp(next.dischargeReadiness + 15, 0, 100)
         narratives.push('Duration plan supports osteomyelitis with bacteremia after source control.')
       }
+      applyOptimalCourseStabilityBonus(next)
       break
     case 'phase_08':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_08
@@ -172,6 +185,7 @@ function applyNaturalProgression(state, phaseId) {
       } else {
         narratives.push('Discharge planning delayed pending clinical stability and monitoring structure.')
       }
+      applyOptimalCourseStabilityBonus(next)
       break
     default:
       if (PHASE_TIME_HOURS[phaseId] != null) {
