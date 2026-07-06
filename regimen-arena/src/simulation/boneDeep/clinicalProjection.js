@@ -38,6 +38,9 @@ function woundDescription(drainage, sourceControl) {
 function cultureStatusText(state) {
   if (state.cultureClearance === 'cleared') return 'Repeat blood cultures: no growth'
   if (state.bacteremiaStatus === 'positive_pending') return 'Blood cultures pending'
+  if (state.gramStainRevealed && !state.organismRevealed) {
+    return 'Preliminary Gram stain: gram-positive cocci in clusters — identification pending'
+  }
   if (state.bacteremiaStatus === 'positive_confirmed') return 'Blood cultures positive ×2'
   if (state.bacteremiaStatus === 'persistent') return 'Persistent bacteremia on repeat cultures'
   if (state.bacteremiaStatus === 'clearing' || state.bacteremiaStatus === 'clearing_slow') {
@@ -48,7 +51,12 @@ function cultureStatusText(state) {
 }
 
 function organismText(state) {
-  if (!state.organismRevealed) return 'Organism not yet identified'
+  if (!state.organismRevealed) {
+    if (state.gramStainRevealed) {
+      return 'Gram-positive cocci in clusters — identification pending'
+    }
+    return 'Organism not yet identified'
+  }
   if (state.susceptibilityRevealed) {
     return `${state.organismIdentity} — oxacillin susceptible (beta-lactam susceptible)`
   }

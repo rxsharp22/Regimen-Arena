@@ -69,6 +69,53 @@
       }
     ]
   },
+  "dp_gram_stain_response": {
+    "id": "dp_gram_stain_response",
+    "prompt": "Preliminary blood cultures show gram-positive cocci in clusters. Identification and susceptibilities are pending. What is your next stewardship action?",
+    "type": "single_select",
+    "options": [
+      {
+        "id": "gs_continue_empiric",
+        "label": "Continue current empiric regimen and await final identification",
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 7, "stewardship": 7, "monitoring": 6 },
+        "flags": [],
+        "feedback": "Reasonable if current gram-positive and gram-negative coverage fits the evolving picture."
+      },
+      {
+        "id": "gs_reinforce_gram_positive",
+        "label": "Reassess gram-positive coverage given cocci in clusters",
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 8, "stewardship": 7, "monitoring": 7 },
+        "flags": ["gram_positive_reassessment"],
+        "feedback": "Appropriate to confirm adequate staphylococcal coverage while identification is pending."
+      },
+      {
+        "id": "gs_repeat_cultures",
+        "label": "Order repeat blood cultures to assess clearance",
+        "outcome": "reasonable",
+        "score_modifiers": { "coverage": 6, "monitoring": 8, "stewardship": 7 },
+        "flags": ["repeat_cultures_ordered"],
+        "feedback": "Repeat cultures help assess bacteremia clearance in the setting of deep infection."
+      },
+      {
+        "id": "gs_reassess_source",
+        "label": "Escalate source-control planning while cultures finalize",
+        "outcome": "reasonable",
+        "score_modifiers": { "source_control": 8, "coverage": 6, "stewardship": 8 },
+        "flags": ["source_control_prioritized"],
+        "feedback": "Deep infection with bacteremia warrants parallel source-control planning."
+      },
+      {
+        "id": "gs_monitor_renal_tox",
+        "label": "Intensify renal and toxicity monitoring on current regimen",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "monitoring": 9, "dosing": 8 },
+        "flags": ["enhanced_monitoring"],
+        "feedback": "Renal function and drug exposure should be trended while empiric therapy continues."
+      }
+    ]
+  },
   "dp_source_control": {
     "id": "dp_source_control",
     "prompt": "MRI confirms osteomyelitis with an adjacent abscess and blood cultures are positive. What is your source-control plan?",

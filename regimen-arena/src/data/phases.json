@@ -16,15 +16,23 @@
         "content": "MRI right foot: osteomyelitis of 5th metatarsal head with adjacent soft tissue abscess confirmed."
       },
       {
-        "type": "microbiology",
-        "content": "Blood cultures ×2: Gram-positive cocci in clusters — identification pending."
-      },
-      {
         "type": "lab",
         "content": "SCr now 2.3 (up from 1.9 on admission). Estimated CrCl now approximately 22 mL/min."
       }
     ],
     "decision_point_id": null
+  },
+  {
+    "id": "phase_02b",
+    "label": "T=18 Hours — Preliminary Microbiology",
+    "narrative": "Preliminary blood culture data are available. Gram stain suggests gram-positive cocci in clusters. Identification and susceptibilities remain pending.",
+    "new_information": [
+      {
+        "type": "microbiology",
+        "content": "Preliminary blood culture update: Gram-positive cocci in clusters. Identification and susceptibilities are pending."
+      }
+    ],
+    "decision_point_id": "dp_gram_stain_response"
   },
   {
     "id": "phase_03",
@@ -95,7 +103,7 @@
   {
     "id": "phase_07",
     "label": "T=7–10 Days — Duration & Route",
-    "narrative": "With source control and culture data in hand, plan the duration and route of therapy for MSSA osteomyelitis with bacteremia.",
+    "narrative": "With source control and culture data in hand, plan the duration and route of therapy for osteomyelitis with bacteremia.",
     "new_information": [],
     "decision_point_id": "dp_04_duration_and_transition"
   },

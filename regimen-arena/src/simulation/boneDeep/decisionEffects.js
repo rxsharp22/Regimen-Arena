@@ -118,6 +118,39 @@ const EMPERIC_EFFECTS = {
   },
 }
 
+const GRAM_STAIN_EFFECTS = {
+  gs_continue_empiric: {
+    stability: 2,
+    stewardship: { monitoring: 6, stewardship: 7 },
+    flags: ['gram_stain_acknowledged'],
+  },
+  gs_reinforce_gram_positive: {
+    stability: 3,
+    toxicityBurden: 1,
+    stewardship: { coverage: 8, monitoring: 7 },
+    flags: ['gram_positive_reassessment'],
+  },
+  gs_repeat_cultures: {
+    stability: 2,
+    stewardship: { monitoring: 8 },
+    flags: ['repeat_cultures_ordered'],
+  },
+  gs_reassess_source: {
+    stability: 4,
+    dischargeReadiness: 5,
+    relapseRisk: -8,
+    stewardship: { source_control: 8 },
+    flags: ['source_control_prioritized'],
+  },
+  gs_monitor_renal_tox: {
+    stability: 3,
+    renalDoseAdjusted: true,
+    toxicityBurden: -1,
+    stewardship: { safety: 8, monitoring: 9, dosing: 8 },
+    flags: ['enhanced_monitoring'],
+  },
+}
+
 const SOURCE_CONTROL_EFFECTS = {
   sc_prompt_debridement: {
     sourceControlStatus: 'scheduled',
@@ -624,6 +657,9 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
   switch (decisionPoint.id) {
     case 'dp_01_empiric_regimen':
       effect = EMPERIC_EFFECTS[optionId]
+      break
+    case 'dp_gram_stain_response':
+      effect = GRAM_STAIN_EFFECTS[optionId]
       break
     case 'dp_source_control':
       effect = SOURCE_CONTROL_EFFECTS[optionId]

@@ -34,13 +34,24 @@ export const PHASE_ARENA_CONFIG = {
   },
   phase_02: {
     stageLabel: 'T=12 Hours — Imaging & Cultures',
-    cultureStatus: 'Blood cultures positive — identification pending',
+    cultureStatus: 'Blood cultures positive — preliminary workup pending',
     organismStatus: 'Not identified',
     organismId: null,
     sourceControl: 'Abscess identified; source control not yet achieved',
     statusUpdate: 'MRI confirms osteomyelitis with abscess. Blood cultures positive.',
     directiveGuided:
       'New imaging and culture data have arrived. Review the clinical course as information evolves.',
+  },
+  phase_02b: {
+    stageLabel: 'T=18 Hours — Preliminary Microbiology',
+    cultureStatus: 'Preliminary Gram stain: GP cocci in clusters — ID pending',
+    organismStatus: 'Gram-positive cocci — identification pending',
+    organismId: null,
+    sourceControl: 'Abscess identified; source control not yet achieved',
+    statusUpdate:
+      'Preliminary blood culture Gram stain available. Identification and susceptibilities remain pending.',
+    directiveGuided:
+      'Gram stain narrows the differential without final identification. Reassess empiric coverage, monitoring, and source control.',
   },
   phase_03: {
     stageLabel: 'T=24 Hours — Source Control',
@@ -68,7 +79,7 @@ export const PHASE_ARENA_CONFIG = {
     organismStatus: 'Staphylococcus aureus — oxacillin susceptible',
     organismId: 'mssa',
     sourceControl: 'Per prior source-control decision',
-    statusUpdate: 'Blood culture: MSSA. Susceptibilities available.',
+    statusUpdate: 'Blood culture finalized. Organism identification and susceptibilities available.',
     directiveGuided:
       'New microbiology data have entered the arena. Reassess spectrum and narrow when appropriate.',
   },
@@ -95,7 +106,7 @@ export const PHASE_ARENA_CONFIG = {
   phase_08: {
     stageLabel: 'Discharge Planning',
     cultureStatus: 'Prior cultures per clinical course',
-    organismStatus: 'Blood culture: MSSA. Susceptibilities on file.',
+    organismStatus: 'Blood culture organism identified — susceptibilities on file.',
     organismId: 'mssa',
     sourceControl: 'Per prior source-control decision',
     statusUpdate: 'Outpatient course planning underway.',
@@ -105,7 +116,7 @@ export const PHASE_ARENA_CONFIG = {
   phase_09: {
     stageLabel: 'Post-Discharge Course',
     cultureStatus: 'Per outpatient course',
-    organismStatus: 'MSSA on file',
+    organismStatus: 'Organism on file from finalized cultures',
     organismId: 'mssa',
     sourceControl: 'Per prior source-control decision',
     statusUpdate: 'The case clock advances beyond discharge.',

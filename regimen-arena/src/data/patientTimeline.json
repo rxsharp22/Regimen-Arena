@@ -11,6 +11,12 @@
     "trend": { "hr": "down", "bp": "up", "scr": "up", "wbc": "down" },
     "status_text": "Blood cultures positive. MRI: osteomyelitis with adjacent abscess. SCr 2.3 mg/dL."
   },
+  "phase_02b": {
+    "stability": "critical",
+    "vitals": { "temp_c": 38.6, "hr": 106, "bp": "105/70", "scr": 2.3, "wbc": 16.8 },
+    "trend": { "hr": "down", "bp": "up", "scr": "stable", "wbc": "down" },
+    "status_text": "Preliminary Gram stain: gram-positive cocci in clusters. Identification and susceptibilities pending."
+  },
   "phase_03": {
     "stability": "critical",
     "vitals": { "temp_c": 38.5, "hr": 104, "bp": "106/72", "scr": 2.3, "wbc": 16.5 },
@@ -27,7 +33,7 @@
     "stability": "guarded",
     "vitals": { "temp_c": 38.1, "hr": 96, "bp": "114/74", "scr": 2.1, "wbc": 13.2 },
     "trend": { "hr": "down", "bp": "up", "scr": "down", "wbc": "down" },
-    "status_text": "Blood culture: MSSA. Susceptibilities available."
+    "status_text": "Blood culture finalized. Organism identification and susceptibilities available."
   },
   "phase_06": {
     "stability": "improving",

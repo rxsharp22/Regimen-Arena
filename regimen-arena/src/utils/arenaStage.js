@@ -8,16 +8,13 @@ const ADVERSE_TYPES = new Set(['toxicity_event', 'treatment_failure', 'relapse_e
 
 function organismFromPhase(phase) {
   for (const item of phase?.new_information ?? []) {
-    if (item.organism || item.interpretation) {
+    if (item.organism && item.susceptibilities) {
       const id =
         inferOrganismIdFromText(item.interpretation) ?? inferOrganismIdFromText(item.organism)
       return {
         status: item.interpretation ?? item.organism ?? 'Identified',
         organismId: id,
       }
-    }
-    if (item.content?.includes('MSSA')) {
-      return { status: 'Staphylococcus aureus — oxacillin susceptible', organismId: 'mssa' }
     }
   }
   return null
