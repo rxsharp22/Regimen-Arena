@@ -314,6 +314,15 @@
         "score_modifiers": { "duration": 2, "stewardship": 3, "source_control": 3 },
         "flags": ["premature_oral_stepdown"],
         "feedback": "Transitioning to oral-only therapy at this point in the course, without completing an adequate IV induction period, is not supported for MSSA bacteremia with osteomyelitis. While oral step-down has evidence behind it, timing is critical. Most protocols describe an initial IV induction period of several weeks before oral transition — not immediate oral therapy from the time of organism identification."
+      },
+      {
+        "id": "dp04_dalbavancin_weekly",
+        "label": "Dalbavancin weekly IV continuation (selected OPAT alternative — no central line)",
+        "requires_simulation_flag": "dalbavancinOffered",
+        "outcome": "reasonable",
+        "score_modifiers": { "duration": 9, "stewardship": 8, "source_control": 8 },
+        "flags": ["dalbavancin_continuation"],
+        "feedback": "Long-acting lipoglycopeptide continuation can simplify outpatient logistics in selected MSSA osteomyelitis patients after adequate source control and clinical improvement — but it is not a substitute for unresolved bacteremia or inadequate source control."
       }
     ],
     "oral_stepdown_sub_decision": {
@@ -468,5 +477,52 @@
         "Critical flag triggered if mon_nothing is selected."
       ]
     }
+  },
+  "dp_dapto_toxicity_response": {
+    "id": "dp_dapto_toxicity_response",
+    "prompt": "CK has risen on daptomycin with possible muscle symptoms. How do you respond?",
+    "type": "single_select",
+    "options": [
+      {
+        "id": "dapto_resp_continue_monitor",
+        "label": "Continue daptomycin with closer CK and symptom monitoring",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 6, "monitoring": 7 },
+        "flags": ["ck_monitoring_intensified"],
+        "feedback": "Intensified monitoring may be appropriate for mild CK elevation without progressive symptoms."
+      },
+      {
+        "id": "dapto_resp_hold_recheck_ck",
+        "label": "Hold daptomycin dose; recheck CK and symptoms before next dose",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 7, "monitoring": 8 },
+        "flags": ["dapto_held_pending_ck"],
+        "feedback": "Holding the dose while rechecking CK is a standard response to rising muscle enzymes on daptomycin."
+      },
+      {
+        "id": "dapto_resp_switch_cefazolin",
+        "label": "Discontinue daptomycin; transition to cefazolin IV",
+        "outcome": "optimal",
+        "score_modifiers": { "safety": 9, "deescalation": 9, "stewardship": 9 },
+        "flags": ["allergy_reconciliation_note"],
+        "feedback": "For MSSA with low-risk allergy history, beta-lactam therapy is preferred when toxicity limits daptomycin continuation."
+      },
+      {
+        "id": "dapto_resp_switch_vancomycin",
+        "label": "Discontinue daptomycin; transition to vancomycin IV with AUC monitoring",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 7, "deescalation": 5 },
+        "flags": [],
+        "feedback": "Vancomycin is an alternative when daptomycin is not tolerated, with attention to renal monitoring in this patient."
+      },
+      {
+        "id": "dapto_resp_hold_switch_beta_lactam",
+        "label": "Hold daptomycin and switch to cefazolin after allergy reconciliation",
+        "outcome": "optimal",
+        "score_modifiers": { "safety": 8, "deescalation": 8, "stewardship": 8 },
+        "flags": ["allergy_reconciliation_note"],
+        "feedback": "Transitioning to a beta-lactam after documenting low-risk allergy is appropriate MSSA stewardship when daptomycin toxicity emerges."
+      }
+    ]
   }
 }

@@ -1,4 +1,5 @@
 import ArenaPremiseBrief from './arena/ArenaPremiseBrief'
+import AdvisorPanel from './visuals/AdvisorPanel'
 
 function DataRow({ label, value, highlight }) {
   return (
@@ -34,6 +35,16 @@ export default function ScenarioIntro({ scenario, patient, onBegin }) {
       </header>
 
       <ArenaPremiseBrief />
+
+      <AdvisorPanel
+        spriteKey="idDoc"
+        title="ID Consult"
+        subtitle="Bone Deep — initial framing"
+        tone="neutral"
+      >
+        New consult: diabetic foot infection with concern for deeper involvement. Cultures are pending,
+        renal function is not pristine, and source control may matter as much as the first antibiotic choice.
+      </AdvisorPanel>
 
       <article className="bg-[#1a222d] border border-[#2a3544] rounded-xl panel-glow overflow-hidden">
         <header className="px-6 py-4 border-b border-[#2a3544] bg-[#151c26] flex flex-wrap items-center justify-between gap-3">

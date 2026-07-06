@@ -102,6 +102,15 @@ export const PHASE_ARENA_CONFIG = {
     directiveGuided:
       'Build a monitoring plan for the outpatient course. Surveillance for toxicity, relapse, and line complications remains active.',
   },
+  phase_09: {
+    stageLabel: 'Post-Discharge Course',
+    cultureStatus: 'Per outpatient course',
+    organismStatus: 'MSSA on file',
+    organismId: 'mssa',
+    sourceControl: 'Per prior source-control decision',
+    statusUpdate: 'The case clock advances beyond discharge.',
+    directiveGuided: 'Interval events after discharge reflect prior stewardship and monitoring decisions.',
+  },
 }
 
 export const INFECTION_SITE_LABEL = 'Right foot — diabetic foot infection with bacteremia'

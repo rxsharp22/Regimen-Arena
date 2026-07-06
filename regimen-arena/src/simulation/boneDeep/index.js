@@ -134,4 +134,15 @@ export function finalizeBoneDeepSimulation(simulation, eventLog, score, critical
   return { debrief, outcomeTier }
 }
 
+export function isDalbavancinEligible(simulation) {
+  if (!simulation) return false
+  return (
+    simulation.dalbavancinOffered ||
+    (simulation.sourceControlStatus === 'completed' &&
+      (simulation.bacteremiaStatus === 'cleared' || simulation.cultureClearance === 'cleared') &&
+      simulation.patientStability >= 50 &&
+      simulation.organismIdentity === 'MSSA')
+  )
+}
+
 export { projectClinicalState, buildImmediateClinicalUpdate }

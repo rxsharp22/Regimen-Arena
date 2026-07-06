@@ -14,8 +14,8 @@
   {
     "trigger_drug": "daptomycin",
     "trigger_phase": "phase_06",
-    "content": "CK level returned: 3× ULN. Daptomycin-associated myopathy is possible. Reassess continued use.",
-    "type": "adverse_event"
+    "content": "CK monitoring due on daptomycin — trend per pharmacy protocol.",
+    "type": "lab_result"
   },
   {
     "trigger_drug": "nafcillin",

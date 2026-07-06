@@ -3,10 +3,20 @@ import DimensionBars from './DimensionBars'
 import CriticalFlags from './CriticalFlags'
 import DebriefPanel from './DebriefPanel'
 import EventLogPanel from './EventLogPanel'
+import AdvisorPanel from './visuals/AdvisorPanel'
 
 export default function ScoreScreen({ state, onRestart }) {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      <AdvisorPanel
+        spriteKey="stewardshipScribe1"
+        title="Stewardship Debrief"
+        subtitle="Bone Deep — case summary"
+        tone="debrief"
+      >
+        Explicit teaching and performance grading appear here — not during active gameplay.
+      </AdvisorPanel>
+
       <OutcomeTier tier={state.outcomeTier} />
 
       {state.debrief && <DebriefPanel debrief={state.debrief} />}

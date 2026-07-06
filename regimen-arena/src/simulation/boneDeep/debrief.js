@@ -158,10 +158,19 @@ export function buildBoneDeepDebrief(state, eventLog, score, criticalFlags) {
             : outcome === 'complicated'
               ? 'Patient experienced complications including treatment failure or persistent infection.'
               : outcome === 'poor'
-                ? 'Patient deteriorated or relapsed after discharge.'
+                ? state.postDischargeOutcomeId === 'severe_deterioration'
+                  ? 'Patient deteriorated after discharge despite inpatient efforts.'
+                  : 'Patient deteriorated or relapsed after discharge.'
                 : 'Patient remains unstable with ongoing infection concerns.',
     },
     disposition: disposition(state),
+    postDischarge: state.postDischargeNarrative
+      ? {
+          outcomeId: state.postDischargeOutcomeId,
+          narrative: state.postDischargeNarrative,
+          linkedScenarioUnlocked: state.linkedScenarioUnlocked,
+        }
+      : null,
     stewardshipPerformance: stewardshipPerformance(state.stewardshipDomains),
     score,
     criticalFlags,

@@ -13,6 +13,20 @@ export default function DebriefPanel({ debrief }) {
         <p className="text-xs text-[#8b9cb3]">Disposition: {disposition}</p>
       </section>
 
+      {debrief.postDischarge && (
+        <section className="p-5 rounded-xl border border-[#2a3544] bg-[#151c26]">
+          <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-2">
+            Post-Discharge Course
+          </p>
+          <p className="text-sm text-[#b8c5d6] leading-relaxed">{debrief.postDischarge.narrative}</p>
+          {debrief.postDischarge.linkedScenarioUnlocked && (
+            <p className="text-xs text-[#4a9ead] mt-3 font-medium">
+              Linked scenario unlocked: Line in the Bloodstream
+            </p>
+          )}
+        </section>
+      )}
+
       <section className="p-5 rounded-xl border border-[#2a3544] bg-[#151c26]">
         <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-3">
           Stewardship Performance

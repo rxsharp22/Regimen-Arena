@@ -360,6 +360,54 @@ const DURATION_EFFECTS = {
     flags: ['premature_oral_stepdown'],
     stewardship: { duration: 2, stewardship: 3, source_control: 3 },
   },
+  dp04_dalbavancin_weekly: {
+    durationAdequacy: 8,
+    opatReadiness: 18,
+    dischargeReadiness: 22,
+    relapseRisk: -12,
+    lineComplicationRisk: -15,
+    flags: ['dalbavancin_continuation'],
+    stewardship: { duration: 9, stewardship: 8, source_control: 8 },
+  },
+}
+
+const DAPTO_TOXICITY_RESPONSE_EFFECTS = {
+  dapto_resp_continue_monitor: {
+    toxicityBurden: 1,
+    flags: ['ck_monitoring_intensified'],
+    stewardship: { safety: 6, monitoring: 7 },
+  },
+  dapto_resp_hold_recheck_ck: {
+    toxicityBurden: -1,
+    stability: 1,
+    flags: ['dapto_held_pending_ck'],
+    stewardship: { safety: 7, monitoring: 8 },
+  },
+  dapto_resp_switch_cefazolin: {
+    drugs: ['cefazolin'],
+    replace: true,
+    toxicityBurden: -4,
+    deescalationScore: 9,
+    stability: 5,
+    daptoToxicityPending: false,
+    stewardship: { safety: 9, deescalation: 9, stewardship: 9 },
+  },
+  dapto_resp_switch_vancomycin: {
+    drugs: ['vancomycin'],
+    replace: true,
+    toxicityBurden: -2,
+    stability: 3,
+    daptoToxicityPending: false,
+    stewardship: { safety: 7, deescalation: 5 },
+  },
+  dapto_resp_hold_switch_beta_lactam: {
+    drugs: ['cefazolin'],
+    replace: true,
+    toxicityBurden: -3,
+    deescalationScore: 8,
+    daptoToxicityPending: false,
+    stewardship: { safety: 8, deescalation: 8 },
+  },
 }
 
 const ORAL_AGENT_EFFECTS = {
@@ -463,6 +511,14 @@ function applyEffectBlock(state, effect, activeDrugsBefore) {
     next.relapseRisk = clamp(next.relapseRisk + effect.relapseRisk, 0, 100)
     hiddenEffects.push(`relapse_risk:${effect.relapseRisk > 0 ? '+' : ''}${effect.relapseRisk}`)
   }
+  if (effect.lineComplicationRisk != null) {
+    next.lineComplicationRisk = clamp(
+      (next.lineComplicationRisk ?? 25) + effect.lineComplicationRisk,
+      0,
+      100
+    )
+    hiddenEffects.push(`line_complication_risk:${effect.lineComplicationRisk}`)
+  }
   if (effect.mortalityRisk != null) {
     next.mortalityRisk = clamp(next.mortalityRisk + effect.mortalityRisk, 0, 100)
     hiddenEffects.push(`mortality_risk:+${effect.mortalityRisk}`)
@@ -496,6 +552,10 @@ function applyEffectBlock(state, effect, activeDrugsBefore) {
   if (effect.pending) {
     next.pendingConsequences = [...new Set([...next.pendingConsequences, ...effect.pending])]
     hiddenEffects.push(`pending:${effect.pending.join(',')}`)
+  }
+  if (effect.daptoToxicityPending === false) {
+    next.daptoToxicityPending = false
+    hiddenEffects.push('dapto_toxicity:addressed')
   }
   if (effect.stewardship) {
     next.stewardshipDomains = applyStewardshipDomains(next, effect.stewardship)
@@ -589,6 +649,10 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
           hiddenEffects.push(...oralResult.hiddenEffects)
         }
       }
+      break
+    case 'dp_dapto_toxicity_response':
+      effect = DAPTO_TOXICITY_RESPONSE_EFFECTS[optionId]
+      next.daptoToxicityPending = false
       break
     default:
       break

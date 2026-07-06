@@ -2,10 +2,22 @@ import { useState } from 'react'
 import DrugCardGrid from './DrugCardGrid'
 import ConfirmButton from './ConfirmButton'
 import { filterDp2Options } from '../utils/decisions'
+import { isDalbavancinEligible } from '../simulation/boneDeep'
+
+function filterSimulationOptions(options, simulation) {
+  return options.filter((opt) => {
+    if (!opt.requires_simulation_flag) return true
+    if (opt.requires_simulation_flag === 'dalbavancinOffered') {
+      return isDalbavancinEligible(simulation)
+    }
+    return Boolean(simulation?.[opt.requires_simulation_flag])
+  })
+}
 
 export default function DecisionPoint({
   decisionPoint,
   activeDrugs,
+  simulation,
   onConfirm,
   disabled,
   isProcessing = false,
@@ -18,10 +30,12 @@ export default function DecisionPoint({
   if (!decisionPoint) return null
 
   const isMulti = decisionPoint.type === 'multi_select'
-  const options =
+  const baseOptions =
     decisionPoint.id === 'dp_02_dose_reassessment'
       ? filterDp2Options(decisionPoint.options, activeDrugs)
       : decisionPoint.options
+
+  const options = filterSimulationOptions(baseOptions, simulation)
 
   const handleSelect = (id) => {
     if (disabled) return

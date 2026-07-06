@@ -105,5 +105,13 @@
     "narrative": "Outpatient antimicrobial course is being planned. Build the monitoring and OPAT structure for safe transition.",
     "new_information": [],
     "decision_point_id": "dp_05_monitoring_plan"
+  },
+  {
+    "id": "phase_09",
+    "label": "Post-Discharge Course",
+    "narrative": "The case clock advances beyond discharge. Interval events unfold based on the course you shaped.",
+    "new_information": [],
+    "decision_point_id": null,
+    "post_discharge": true
   }
 ]

@@ -10,7 +10,11 @@ import ClinicalResponsePanel from './ClinicalResponsePanel'
 import NarrativeEventCard from './NarrativeEventCard'
 import InfectionArenaPanel from './arena/InfectionArenaPanel'
 import CaseBriefing from './onboarding/CaseBriefing'
+import AdvisorPanel from './visuals/AdvisorPanel'
+import CaseAdvanceLoadingScreen from './visuals/CaseAdvanceLoadingScreen'
+import PostDischargePanel from './visuals/PostDischargePanel'
 import { getDecisionPoint } from '../utils/decisions'
+import { getAdvisorForPhase, getAdvisorForConditionalEvent } from '../simulation/boneDeep/advisorContext'
 
 const TRANSITION_CARDS = {
   0: {
@@ -59,47 +63,78 @@ export default function PhaseEngine({
 }) {
   const phaseIndex = state.currentPhase
   const [isProcessing, setIsProcessing] = useState(false)
+  const [showCaseClock, setShowCaseClock] = useState(false)
   const [showCriticalOverlay, setShowCriticalOverlay] = useState(false)
   const [battleState, setBattleState] = useState(null)
   const [showFeedbackText, setShowFeedbackText] = useState(false)
   const [trailCard, setTrailCard] = useState(null)
+  const [pendingConfirm, setPendingConfirm] = useState(null)
   const battleStateRef = useRef(null)
 
-  const decisionPoint = useMemo(
-    () =>
-      currentPhaseData?.decision_point_id
-        ? getDecisionPoint(currentPhaseData.decision_point_id)
-        : null,
-    [currentPhaseData]
-  )
+  const needsDaptoResponse =
+    state.simulation?.daptoToxicityPending && !state.decisions?.dp_dapto_toxicity_response
 
-  const isInfoOnlyPhase = !currentPhaseData?.decision_point_id
+  const decisionPoint = useMemo(() => {
+    if (needsDaptoResponse) return getDecisionPoint('dp_dapto_toxicity_response')
+    if (currentPhaseData?.decision_point_id) {
+      return getDecisionPoint(currentPhaseData.decision_point_id)
+    }
+    return null
+  }, [currentPhaseData, needsDaptoResponse])
+
+  const isPostDischargePhase = currentPhaseData?.post_discharge === true
+  const isInfoOnlyPhase = !decisionPoint && !needsDaptoResponse
+
+  const phaseAdvisor = useMemo(
+    () =>
+      getAdvisorForPhase(currentPhaseData?.id, {
+        simulation: state.simulation,
+        conditionalEvents: state.conditionalEvents,
+      }),
+    [currentPhaseData?.id, state.simulation, state.conditionalEvents]
+  )
 
   useEffect(() => {
     setBattleState(null)
     setShowFeedbackText(false)
     setTrailCard(null)
     setShowCriticalOverlay(false)
+    setShowCaseClock(false)
+    setPendingConfirm(null)
   }, [state.currentPhase])
+
+  const completeDecision = useCallback(
+    (option, subOption) => {
+      onConfirmDecision(decisionPoint, option, phaseIndex, subOption)
+      const label = subOption
+        ? `${option.label} → ${subOption.label}`
+        : decisionPoint.type === 'multi_select'
+          ? 'Monitoring plan submitted'
+          : option.label
+      battleStateRef.current = { drugLabel: label, illustration: 'therapy_deployed' }
+      setBattleState(battleStateRef.current)
+      setIsProcessing(false)
+    },
+    [decisionPoint, onConfirmDecision, phaseIndex]
+  )
 
   const handleConfirm = useCallback(
     (option, subOption) => {
       setIsProcessing(true)
       setShowFeedbackText(false)
-      setTimeout(() => {
-        onConfirmDecision(decisionPoint, option, phaseIndex, subOption)
-        const label = subOption
-          ? `${option.label} → ${subOption.label}`
-          : decisionPoint.type === 'multi_select'
-            ? 'Monitoring plan submitted'
-            : option.label
-        battleStateRef.current = { drugLabel: label, illustration: 'therapy_deployed' }
-        setBattleState(battleStateRef.current)
-        setIsProcessing(false)
-      }, 1200)
+      setPendingConfirm({ option, subOption })
+      setShowCaseClock(true)
     },
-    [decisionPoint, onConfirmDecision, phaseIndex]
+    []
   )
+
+  const handleCaseClockComplete = useCallback(() => {
+    setShowCaseClock(false)
+    if (pendingConfirm) {
+      completeDecision(pendingConfirm.option, pendingConfirm.subOption)
+      setPendingConfirm(null)
+    }
+  }, [pendingConfirm, completeDecision])
 
   const handleBattleComplete = useCallback(() => {
     setShowFeedbackText(true)
@@ -161,9 +196,30 @@ export default function PhaseEngine({
   }, [onAdvance])
 
   if (trailCard) {
+    const eventAdvisor = state.conditionalEvents[0]
+      ? getAdvisorForConditionalEvent(state.conditionalEvents[0])
+      : null
+    return (
+      <div className="max-w-4xl mx-auto space-y-4">
+        {eventAdvisor && (
+          <AdvisorPanel
+            spriteKey={eventAdvisor.spriteKey}
+            title={eventAdvisor.title}
+            subtitle={eventAdvisor.subtitle}
+            tone={eventAdvisor.tone}
+          >
+            {eventAdvisor.body}
+          </AdvisorPanel>
+        )}
+        <NarrativeEventCard {...trailCard} onContinue={handleTrailContinue} />
+      </div>
+    )
+  }
+
+  if (showCaseClock) {
     return (
       <div className="max-w-4xl mx-auto">
-        <NarrativeEventCard {...trailCard} onContinue={handleTrailContinue} />
+        <CaseAdvanceLoadingScreen onComplete={handleCaseClockComplete} />
       </div>
     )
   }
@@ -178,37 +234,57 @@ export default function PhaseEngine({
         scoreMaxes={state.scoreMaxes}
       />
 
+      {phaseAdvisor && !isPostDischargePhase && (
+        <AdvisorPanel
+          spriteKey={phaseAdvisor.spriteKey}
+          title={phaseAdvisor.title}
+          subtitle={phaseAdvisor.subtitle}
+          tone={phaseAdvisor.tone}
+          className="mb-4"
+        >
+          {phaseAdvisor.body}
+        </AdvisorPanel>
+      )}
+
       <PatientStatusPanel
         conditionalEvents={state.conditionalEvents}
         clinicalSnapshot={state.clinicalSnapshot}
+        simulation={state.simulation}
       />
 
-      <NewInformationPanel
-        phase={currentPhaseData}
-        conditionalEvents={state.conditionalEvents}
-      />
+      {!isPostDischargePhase && (
+        <NewInformationPanel
+          phase={currentPhaseData}
+          conditionalEvents={state.conditionalEvents}
+        />
+      )}
 
-      {!state.showFeedback && !battleState && !isProcessing && (
+      {isPostDischargePhase && <PostDischargePanel simulation={state.simulation} />}
+
+      {!state.showFeedback && !battleState && !isProcessing && !isPostDischargePhase && (
         <CaseBriefing phaseId={currentPhaseData.id} />
       )}
 
-      <InfectionArenaPanel
-        phase={currentPhaseData}
-        activeDrugs={state.activeDrugs}
-        conditionalEvents={state.conditionalEvents}
-        clinicalSnapshot={state.clinicalSnapshot}
-      />
+      {!isPostDischargePhase && (
+        <InfectionArenaPanel
+          phase={currentPhaseData}
+          activeDrugs={state.activeDrugs}
+          conditionalEvents={state.conditionalEvents}
+          clinicalSnapshot={state.clinicalSnapshot}
+        />
+      )}
 
-      {isInfoOnlyPhase ? (
+      {isInfoOnlyPhase || isPostDischargePhase ? (
         <div className="mt-8 flex justify-end">
           <ContinueButton onClick={handleInfoOnlyContinue} isFinal={isFinalPhase} />
         </div>
       ) : (
         <>
           <DecisionPoint
-            key={currentPhaseData.id}
+            key={`${currentPhaseData.id}-${decisionPoint?.id}`}
             decisionPoint={decisionPoint}
             activeDrugs={state.activeDrugs}
+            simulation={state.simulation}
             onConfirm={handleConfirm}
             disabled={state.showFeedback || isProcessing || !!battleState}
             isProcessing={isProcessing}

@@ -1,4 +1,6 @@
 import { clamp } from './state'
+import { rollDaptoToxicity, rollVancomycinRenalVariability } from './weightedOutcomes'
+import { resolvePostDischargeOutcome } from './postDischarge'
 
 const PHASE_TIME_HOURS = {
   phase_01: 0,
@@ -9,6 +11,7 @@ const PHASE_TIME_HOURS = {
   phase_06: 120,
   phase_07: 144,
   phase_08: 168,
+  phase_09: 504,
 }
 
 function resolvePendingConsequences(state) {
@@ -168,6 +171,24 @@ function applyNaturalProgression(state, phaseId) {
       if (next.akiOccurred && next.renalDoseAdjusted) {
         narratives.push('Renal function recovering after dose adjustment.')
       }
+      if (next.activeTherapy.includes('daptomycin') && !next.daptoToxicityTier) {
+        const daptoRoll = rollDaptoToxicity(next)
+        if (daptoRoll) {
+          narratives.push(daptoRoll.narrative)
+          next.variabilityFlags = [...(next.variabilityFlags ?? []), daptoRoll.id]
+          next.daptoToxicityTier = daptoRoll.tier
+          next.daptoToxicityNarrative = daptoRoll.narrative
+          if (daptoRoll.requiresResponse) {
+            next.daptoToxicityPending = true
+            next.toxicityBurden = clamp(next.toxicityBurden + 2, 0, 100)
+          }
+        }
+      }
+      const vancoRoll = rollVancomycinRenalVariability(next)
+      if (vancoRoll) {
+        narratives.push(vancoRoll.narrative)
+        next.variabilityFlags = [...(next.variabilityFlags ?? []), vancoRoll.id]
+      }
       applyOptimalCourseStabilityBonus(next)
       break
     case 'phase_07':
@@ -177,6 +198,13 @@ function applyNaturalProgression(state, phaseId) {
         narratives.push('Duration plan supports osteomyelitis with bacteremia after source control.')
       }
       applyOptimalCourseStabilityBonus(next)
+      if (
+        next.sourceControlStatus === 'completed' &&
+        (next.bacteremiaStatus === 'cleared' || next.cultureClearance === 'cleared') &&
+        next.patientStability >= 45
+      ) {
+        next.dalbavancinOffered = true
+      }
       break
     case 'phase_08':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_08
@@ -186,6 +214,24 @@ function applyNaturalProgression(state, phaseId) {
         narratives.push('Discharge planning delayed pending clinical stability and monitoring structure.')
       }
       applyOptimalCourseStabilityBonus(next)
+      break
+    case 'phase_09':
+      next.scenarioTimeHours = PHASE_TIME_HOURS.phase_09
+      {
+        const outcome = resolvePostDischargeOutcome(next)
+        next.postDischargeOutcomeId = outcome.id
+        next.postDischargeNarrative = outcome.narrative
+        next.linkedScenarioUnlocked = Boolean(outcome.linkedScenario)
+        if (outcome.relapseOccurred) next.relapseOccurred = true
+        if (outcome.mortalityEvent) {
+          next.mortalityRisk = 100
+          next.patientStability = clamp(next.patientStability - 30, 0, 100)
+        }
+        if (outcome.id === 'resolved_completed') {
+          next.recoveryMomentum = clamp(next.recoveryMomentum + 20, 0, 100)
+        }
+        narratives.push(outcome.narrative)
+      }
       break
     default:
       if (PHASE_TIME_HOURS[phaseId] != null) {
