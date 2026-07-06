@@ -144,10 +144,9 @@ const GRAM_STAIN_EFFECTS = {
   },
   gs_monitor_renal_tox: {
     stability: 3,
-    renalDoseAdjusted: true,
     toxicityBurden: -1,
     stewardship: { safety: 8, monitoring: 9, dosing: 8 },
-    flags: ['enhanced_monitoring'],
+    flags: ['enhanced_monitoring', 'renal_monitoring_intensified'],
   },
 }
 
