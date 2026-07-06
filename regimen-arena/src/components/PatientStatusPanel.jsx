@@ -1,4 +1,5 @@
-import PatientStatusVisual, { patientVariantFromSnapshot } from './visuals/PatientStatusVisual'
+import PatientStatusVisual from './visuals/PatientStatusVisual'
+import { patientVariantFromSnapshot } from '../utils/patientSprites'
 
 const STABILITY = {
   critical: { label: 'Critical', color: '#c45c5c' },

@@ -14,7 +14,6 @@ export function initBoneDeepSimulation() {
 export function processBoneDeepDecision({
   simulation,
   eventLog,
-  clinicalSnapshot,
   decisionPoint,
   option,
   subOption,

@@ -160,7 +160,7 @@ function applyNaturalProgression(state, phaseId) {
         narratives.push('Blood cultures under evaluation.')
       }
       break
-    case 'phase_06':
+    case 'phase_06': {
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_06
       if (next.sourceControlStatus === 'completed') {
         next.woundDrainage = 'serous_minimal'
@@ -191,6 +191,7 @@ function applyNaturalProgression(state, phaseId) {
       }
       applyOptimalCourseStabilityBonus(next)
       break
+    }
     case 'phase_07':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_07
       if (next.durationAdequacy >= 7) {

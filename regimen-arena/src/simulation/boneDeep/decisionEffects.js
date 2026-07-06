@@ -428,7 +428,7 @@ function applyStewardshipDomains(state, domains = {}) {
   return stewardshipDomains
 }
 
-function applyEffectBlock(state, effect, activeDrugsBefore) {
+function applyEffectBlock(state, effect) {
   let next = { ...state }
   const hiddenEffects = []
 
@@ -644,7 +644,7 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
       if (subOption) {
         const oralEffect = ORAL_AGENT_EFFECTS[subOption.id]
         if (oralEffect) {
-          const oralResult = applyEffectBlock(next, oralEffect, activeDrugsBefore)
+          const oralResult = applyEffectBlock(next, oralEffect)
           next = oralResult.state
           hiddenEffects.push(...oralResult.hiddenEffects)
         }
@@ -659,7 +659,7 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
   }
 
   if (effect) {
-    const result = applyEffectBlock(next, effect, activeDrugsBefore)
+    const result = applyEffectBlock(next, effect)
     next = result.state
     hiddenEffects = [...hiddenEffects, ...result.hiddenEffects]
   }

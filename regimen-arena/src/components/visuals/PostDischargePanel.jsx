@@ -27,9 +27,6 @@ export default function PostDischargePanel({ simulation }) {
 
       <div className="flex items-center gap-4 p-4 rounded-xl border border-[#2a3544] bg-[#151c26]">
         <PatientStatusVisual variant={variant} label="Patient status" />
-        <p className="text-sm text-[#b8c5d6] leading-relaxed flex-1">
-          {simulation.postDischargeNarrative}
-        </p>
       </div>
 
       {simulation.linkedScenarioUnlocked && (
