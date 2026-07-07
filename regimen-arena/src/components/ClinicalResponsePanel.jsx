@@ -55,7 +55,13 @@ function SimulationIllustration({ type }) {
   return null
 }
 
-export default function ClinicalResponsePanel({ drugLabel, illustration = 'none', onComplete }) {
+export default function ClinicalResponsePanel({
+  drugLabel,
+  illustration = 'none',
+  organismId = null,
+  organismLabel = null,
+  onComplete,
+}) {
   const [phase, setPhase] = useState('idle')
   const [spriteState, setSpriteState] = useState('idle')
   const onCompleteRef = useRef(onComplete)
@@ -92,7 +98,16 @@ export default function ClinicalResponsePanel({ drugLabel, illustration = 'none'
         </div>
         <div className="flex items-center gap-3">
           <SimulationIllustration type={phase === 'impact' ? illustration : 'none'} />
-          <OrganismSprite animState={spriteState} organismId="mssa" label="MSSA" />
+          {organismId ? (
+            <OrganismSprite animState={spriteState} organismId={organismId} label={organismLabel} />
+          ) : (
+            <div
+              className="w-16 h-16 rounded-full border border-dashed border-[#344559] flex items-center justify-center bg-[#0a0e13]"
+              aria-label="Culture pending"
+            >
+              <span className="text-[9px] text-[#8b9cb3] text-center px-1">Pending</span>
+            </div>
+          )}
         </div>
       </div>
       {phase === 'impact' && (

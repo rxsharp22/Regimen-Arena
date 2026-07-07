@@ -15,6 +15,7 @@ export function createInitialBoneDeepState() {
     organismRevealed: false,
     organismIdentity: null,
     susceptibilityRevealed: false,
+    gramStainRevealed: false,
     activeTherapy: [],
     spectrumBurden: 0,
     toxicityBurden: 0,

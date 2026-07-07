@@ -52,6 +52,10 @@ const OUTCOME_COPY = {
   },
 }
 
+function sourceOk(state) {
+  return state.sourceControlStatus === 'completed'
+}
+
 function buildOutcomeWeights(state) {
   const recovery = Math.max(0, state.patientStability - 40) / 60
   const relapse = state.relapseRisk / 100
@@ -61,11 +65,18 @@ function buildOutcomeWeights(state) {
   const poorTox = state.toxicityBurden / 100
   const poorSource = state.sourceControlStatus !== 'completed' ? 0.4 : 0
   const poorDuration = state.durationAdequacy < 5 ? 0.35 : 0
+  const therapyActive = (state.activeTherapy?.length ?? 0) > 0
+  const infectionControlled = state.infectionBurden < 45 && state.bacteremiaStatus !== 'persistent'
+
+  const resolvedBase =
+    sourceOk(state) && therapyActive && infectionControlled
+      ? Math.max(1, 6 * recovery + (state.durationAdequacy >= 7 ? 3 : 0) - relapse * 4)
+      : Math.max(0.15, recovery)
 
   return [
     {
       id: 'resolved_completed',
-      weight: Math.max(1, 6 * recovery + (state.durationAdequacy >= 7 ? 3 : 0) - relapse * 4),
+      weight: resolvedBase,
     },
     {
       id: 'rehab_monitoring',

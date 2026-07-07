@@ -5,6 +5,7 @@ import { resolvePostDischargeOutcome } from './postDischarge'
 const PHASE_TIME_HOURS = {
   phase_01: 0,
   phase_02: 12,
+  phase_02b: 18,
   phase_03: 24,
   phase_04: 36,
   phase_05: 48,
@@ -129,7 +130,14 @@ function applyNaturalProgression(state, phaseId) {
         next.wbc = clamp(next.wbc - 1.2, 4, 30)
         next.patientStability = clamp(next.patientStability + 3, 0, 100)
       }
-      narratives.push('Blood cultures ×2 positive for gram-positive cocci in clusters. MRI confirms osteomyelitis with adjacent abscess.')
+      narratives.push('Blood cultures ×2 positive. MRI confirms osteomyelitis with adjacent abscess.')
+      break
+    case 'phase_02b':
+      next.scenarioTimeHours = PHASE_TIME_HOURS.phase_02b
+      next.gramStainRevealed = true
+      narratives.push(
+        'Preliminary Gram stain: gram-positive cocci in clusters. Identification and susceptibilities pending.'
+      )
       break
     case 'phase_04':
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_04

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { STEWARDSHIP_LOADING_SPRITES, getSpriteUrlOrFallback } from '../../data/spriteRegistry'
 
 const PROCESSING_LINES = [
@@ -23,14 +23,22 @@ export default function CaseAdvanceLoadingScreen({ onComplete }) {
   const spriteKey = STEWARDSHIP_LOADING_SPRITES[spriteIndex % STEWARDSHIP_LOADING_SPRITES.length]
   const src = getSpriteUrlOrFallback(spriteKey, 'scribe5')
 
+  const onCompleteRef = useRef(onComplete)
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
+
   useEffect(() => {
     const start = Date.now()
+    let completed = false
     const progressTimer = setInterval(() => {
       const elapsed = Date.now() - start
       setProgress(Math.min(100, (elapsed / DURATION_MS) * 100))
-      if (elapsed >= DURATION_MS) {
+      if (elapsed >= DURATION_MS && !completed) {
+        completed = true
         clearInterval(progressTimer)
-        onComplete()
+        onCompleteRef.current()
       }
     }, 50)
 
@@ -48,7 +56,7 @@ export default function CaseAdvanceLoadingScreen({ onComplete }) {
       clearInterval(lineTimer)
       clearInterval(spriteTimer)
     }
-  }, [onComplete])
+  }, [])
 
   return (
     <div className="max-w-4xl mx-auto mt-6">

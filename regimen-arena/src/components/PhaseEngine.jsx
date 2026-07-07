@@ -6,14 +6,14 @@ import DecisionPoint from './DecisionPoint'
 import ClinicalUpdatePanel from './ClinicalUpdatePanel'
 import ContinueButton from './ContinueButton'
 import CriticalErrorOverlay from './CriticalErrorOverlay'
-import ClinicalResponsePanel from './ClinicalResponsePanel'
 import NarrativeEventCard from './NarrativeEventCard'
 import InfectionArenaPanel from './arena/InfectionArenaPanel'
 import CaseBriefing from './onboarding/CaseBriefing'
 import AdvisorPanel from './visuals/AdvisorPanel'
 import CaseAdvanceLoadingScreen from './visuals/CaseAdvanceLoadingScreen'
+import OrderReviewPanel from './visuals/OrderReviewPanel'
 import PostDischargePanel from './visuals/PostDischargePanel'
-import { getDecisionPoint } from '../utils/decisions'
+import { getDecisionPoint, getDrugById } from '../utils/decisions'
 import { getAdvisorForPhase, getAdvisorForConditionalEvent } from '../simulation/boneDeep/advisorContext'
 
 const TRANSITION_CARDS = {
@@ -26,22 +26,26 @@ const TRANSITION_CARDS = {
     body: 'MRI confirms osteomyelitis with abscess.\nBlood cultures are positive.\nSource control becomes urgent.',
   },
   2: {
+    headline: 'Preliminary microbiology.',
+    body: 'Gram stain suggests gram-positive cocci in clusters.\nIdentification and susceptibilities remain pending.\nEmpiric coverage decisions still matter.',
+  },
+  3: {
     headline: 'Source control on the table.',
     body: 'Purulent drainage persists.\nSurgical consultation is available.\nAntibiotics alone cannot sterilize uncontrolled bone infection.',
   },
-  3: {
+  4: {
     headline: 'Renal function under pressure.',
     body: 'Creatinine has risen on empiric therapy.\nDose adjustment decisions matter now.',
   },
-  4: {
-    headline: 'The lab calls.',
-    body: 'Culture and sensitivity results are final.\nMSSA is identified.\nDefinitive therapy selection follows.',
-  },
   5: {
+    headline: 'The lab calls.',
+    body: 'Culture and sensitivity results are final.\nOrganism identification is available.\nDefinitive therapy selection follows.',
+  },
+  6: {
     headline: 'Clinical response emerges.',
     body: 'Repeat cultures, wound status, and renal trend reflect prior decisions.\nConsequences appear through data, not grades.',
   },
-  6: {
+  7: {
     headline: 'Planning the home stretch.',
     body: 'Source control and culture data inform duration and route.\nOPAT feasibility depends on monitoring and stability.',
   },
@@ -62,14 +66,13 @@ export default function PhaseEngine({
   onAdvance,
 }) {
   const phaseIndex = state.currentPhase
-  const [isProcessing, setIsProcessing] = useState(false)
   const [showCaseClock, setShowCaseClock] = useState(false)
   const [showCriticalOverlay, setShowCriticalOverlay] = useState(false)
-  const [battleState, setBattleState] = useState(null)
   const [showFeedbackText, setShowFeedbackText] = useState(false)
   const [trailCard, setTrailCard] = useState(null)
-  const [pendingConfirm, setPendingConfirm] = useState(null)
-  const battleStateRef = useRef(null)
+  const [orderReview, setOrderReview] = useState(null)
+  const [decisionResetKey, setDecisionResetKey] = useState(0)
+  const pendingConfirmRef = useRef(null)
 
   const needsDaptoResponse =
     state.simulation?.daptoToxicityPending && !state.decisions?.dp_dapto_toxicity_response
@@ -95,65 +98,76 @@ export default function PhaseEngine({
   )
 
   useEffect(() => {
-    setBattleState(null)
     setShowFeedbackText(false)
     setTrailCard(null)
     setShowCriticalOverlay(false)
     setShowCaseClock(false)
-    setPendingConfirm(null)
+    setOrderReview(null)
+    pendingConfirmRef.current = null
   }, [state.currentPhase])
 
-  const completeDecision = useCallback(
+  const buildOrderLabel = useCallback(
     (option, subOption) => {
-      onConfirmDecision(decisionPoint, option, phaseIndex, subOption)
-      const label = subOption
-        ? `${option.label} → ${subOption.label}`
-        : decisionPoint.type === 'multi_select'
-          ? 'Monitoring plan submitted'
-          : option.label
-      battleStateRef.current = { drugLabel: label, illustration: 'therapy_deployed' }
-      setBattleState(battleStateRef.current)
-      setIsProcessing(false)
+      if (!decisionPoint) return 'Order submitted'
+      if (decisionPoint.type === 'multi_select') return 'Monitoring plan submitted'
+      if (subOption) return `${option.label} → ${subOption.label}`
+      return option.label ?? 'Order submitted'
     },
-    [decisionPoint, onConfirmDecision, phaseIndex]
+    [decisionPoint]
   )
 
-  const handleConfirm = useCallback(
+  const buildDrugLabels = useCallback((option, subOption) => {
+    const ids = [...(option?.drugs ?? [])]
+    if (subOption?.drugs?.length) ids.push(...subOption.drugs)
+    return ids.map((id) => getDrugById(id)?.display_name ?? id)
+  }, [])
+
+  const handlePlaceOrder = useCallback(
     (option, subOption) => {
-      setIsProcessing(true)
       setShowFeedbackText(false)
-      setPendingConfirm({ option, subOption })
-      setShowCaseClock(true)
+      setOrderReview({ option, subOption })
     },
     []
   )
 
+  const handleChangeOrder = useCallback(() => {
+    setOrderReview(null)
+    pendingConfirmRef.current = null
+    setDecisionResetKey((k) => k + 1)
+  }, [])
+
+  const handleConfirmAdvance = useCallback(() => {
+    if (!orderReview) return
+    pendingConfirmRef.current = orderReview
+    setShowCaseClock(true)
+  }, [orderReview])
+
   const handleCaseClockComplete = useCallback(() => {
     setShowCaseClock(false)
-    if (pendingConfirm) {
-      completeDecision(pendingConfirm.option, pendingConfirm.subOption)
-      setPendingConfirm(null)
-    }
-  }, [pendingConfirm, completeDecision])
+    const pending = pendingConfirmRef.current
+    if (!pending || !decisionPoint) return
 
-  const handleBattleComplete = useCallback(() => {
+    onConfirmDecision(decisionPoint, pending.option, phaseIndex, pending.subOption)
+    setOrderReview(null)
+    pendingConfirmRef.current = null
     setShowFeedbackText(true)
-    if (state.criticalFlags.length > 0) {
-      const latestCritical = state.criticalFlags[state.criticalFlags.length - 1]
-      if (
-        latestCritical === 'critical_error_linezolid_bacteremia' ||
-        latestCritical === 'critical_insufficient_duration' ||
-        latestCritical === 'critical_no_monitoring_plan'
-      ) {
-        setShowCriticalOverlay(true)
-      }
+  }, [decisionPoint, onConfirmDecision, phaseIndex])
+
+  useEffect(() => {
+    if (!showFeedbackText || state.criticalFlags.length === 0) return
+    const latestCritical = state.criticalFlags[state.criticalFlags.length - 1]
+    if (
+      latestCritical === 'critical_error_linezolid_bacteremia' ||
+      latestCritical === 'critical_insufficient_duration' ||
+      latestCritical === 'critical_no_monitoring_plan'
+    ) {
+      setShowCriticalOverlay(true)
     }
-  }, [state.criticalFlags])
+  }, [showFeedbackText, state.criticalFlags])
 
   const isFinalPhase = phaseIndex === totalPhases - 1
 
   const handleAdvance = useCallback(() => {
-    setBattleState(null)
     setShowFeedbackText(false)
 
     if (isFinalPhase) {
@@ -261,7 +275,7 @@ export default function PhaseEngine({
 
       {isPostDischargePhase && <PostDischargePanel simulation={state.simulation} />}
 
-      {!state.showFeedback && !battleState && !isProcessing && !isPostDischargePhase && (
+      {!state.showFeedback && !orderReview && !showCaseClock && !isPostDischargePhase && (
         <CaseBriefing phaseId={currentPhaseData.id} />
       )}
 
@@ -280,23 +294,23 @@ export default function PhaseEngine({
         </div>
       ) : (
         <>
-          <DecisionPoint
-            key={`${currentPhaseData.id}-${decisionPoint?.id}`}
-            decisionPoint={decisionPoint}
-            activeDrugs={state.activeDrugs}
-            simulation={state.simulation}
-            onConfirm={handleConfirm}
-            disabled={state.showFeedback || isProcessing || !!battleState}
-            isProcessing={isProcessing}
-          />
+          {!orderReview && !showCaseClock && (
+            <DecisionPoint
+              key={`${currentPhaseData.id}-${decisionPoint?.id}-${decisionResetKey}`}
+              decisionPoint={decisionPoint}
+              activeDrugs={state.activeDrugs}
+              simulation={state.simulation}
+              onConfirm={handlePlaceOrder}
+              disabled={state.showFeedback || showFeedbackText}
+            />
+          )}
 
-          {battleState && (
-            <ClinicalResponsePanel
-              drugLabel={battleState.drugLabel}
-              illustration={
-                state.lastFeedback?.clinicalUpdate?.illustration ?? battleState.illustration
-              }
-              onComplete={handleBattleComplete}
+          {orderReview && !showCaseClock && (
+            <OrderReviewPanel
+              orderLabel={buildOrderLabel(orderReview.option, orderReview.subOption)}
+              drugLabels={buildDrugLabels(orderReview.option, orderReview.subOption)}
+              onConfirmAdvance={handleConfirmAdvance}
+              onChangeOrder={handleChangeOrder}
             />
           )}
 

@@ -21,6 +21,14 @@ export function getAdvisorForPhase(phaseId, { simulation, conditionalEvents = []
         tone: 'lab',
         body: null,
       }
+    case 'phase_02b':
+      return {
+        spriteKey: 'labTech',
+        title: 'Microbiology',
+        subtitle: 'Preliminary Gram stain available',
+        tone: 'lab',
+        body: 'Preliminary blood culture update: Gram-positive cocci in clusters. Identification and susceptibilities are pending.',
+      }
     case 'phase_04':
       return {
         spriteKey: 'pharmacist',
