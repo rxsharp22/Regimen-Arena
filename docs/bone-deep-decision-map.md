@@ -244,7 +244,57 @@ Resolved by `resolvePostDischargeOutcome` (weighted).
 1. Player selects option → **Place Order**
 2. **Order Review** — confirm or change (no time advance)
 3. **Confirm / Advance Case Clock** → 5s loading screen
-4. Decision applied → **Clinical Update** panel (no intermediate “order placed” animation with organism leak)
+4. Decision applied + **phase auto-advances** → next phase `ClinicalPhaseLayout` (no post-loading “order acknowledged” screen)
+
+Info-only phases: **Continue** → optional transition card → next phase.
+
+---
+
+## Phase layout (`ClinicalPhaseLayout`)
+
+Active gameplay sections (top to bottom):
+
+1. Phase header (time label, progress)
+2. Advisor panel (when relevant)
+3. **Situation Snapshot** — 2–4 high-yield bullets
+4. **What Changed Since Last Update** — prefixed with “New:”
+5. **Active Concerns** — chips (bacteremia, CKD, source control, etc.)
+6. Active therapy summary
+7. Expandable details (Infection Arena dashboard)
+8. Decision prompt + cards
+
+---
+
+## Debrief model (process vs outcome)
+
+Final screen separates three axes (not shown during gameplay):
+
+| Axis | Labels | Driven by |
+|------|--------|-----------|
+| **Stewardship Performance** | Excellent / Strong / Adequate / Concerning / Unsafe | Domain scores, critical flags, unsafe decision IDs — **not** post-discharge RNG alone |
+| **Patient Outcome** | Resolved / Complex Recovery / Readmitted / ICU Transfer / Death | `postDischargeOutcomeId`, relapse, mortality |
+| **Outcome Attribution** | Mostly decision-driven / Mixed / Mostly clinical variability | Compares monitoring plan strength vs post-discharge event type |
+
+**Unsafe stewardship** requires player-driven harm: no monitoring plan, inadequate source control, ignored toxicity, insufficient duration, linezolid bacteremia, etc.
+
+**Clinical variability attribution** when `monitoring >= 7`, no `critical_no_monitoring_plan`, and outcome is `followup_failure` or `line_complication` with Strong/Excellent stewardship.
+
+---
+
+## Post-Discharge weight adjustments (2026-07)
+
+| Outcome | Weight logic changes |
+|---------|---------------------|
+| `followup_failure` | ×0.35 when monitoring plan strong; +5 when `critical_no_monitoring_plan` |
+| `line_complication` | ×0.2 without OPAT/IV line exposure; ×0.45 when monitoring strong; ×0.25 with dalbavancin |
+| `severe_deterioration` | ×0.15 when source OK, infection controlled, monitoring strong, recovery >0.65 |
+| `resolved_completed` | Requires source OK + active therapy + infection controlled |
+
+---
+
+## Order flow (legacy note)
+
+_Removed: post-loading ClinicalUpdatePanel “Order acknowledged” step._
 
 ---
 

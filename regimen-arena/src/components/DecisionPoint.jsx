@@ -86,17 +86,19 @@ export default function DecisionPoint({
       : selectedId !== null
 
   return (
-    <section className="mt-8 space-y-4">
+    <section className="mt-6 space-y-4 rounded-xl border border-[#2a3544] bg-[#151c26] p-4 sm:p-5">
       <div>
-        <h3 className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-2">
+        <h3 className="text-xs uppercase tracking-widest text-[#4a9ead] font-semibold mb-3">
           Clinical Decision
         </h3>
-        <p className="text-sm font-medium text-[#e8edf4]">{decisionPoint.prompt}</p>
+        <p className="text-base sm:text-lg font-medium text-[#e8edf4] leading-snug">
+          {decisionPoint.prompt}
+        </p>
         {decisionPoint.instruction && (
-          <p className="text-xs text-[#8b9cb3] mt-1">{decisionPoint.instruction}</p>
+          <p className="text-sm text-[#8b9cb3] mt-2 leading-relaxed">{decisionPoint.instruction}</p>
         )}
         {decisionPoint.note && (
-          <p className="text-xs text-[#8b9cb3] mt-1 italic">{decisionPoint.note}</p>
+          <p className="text-sm text-[#8b9cb3] mt-2 italic leading-relaxed">{decisionPoint.note}</p>
         )}
       </div>
 

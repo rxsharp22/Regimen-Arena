@@ -1,4 +1,4 @@
-import OutcomeTier from './OutcomeTier'
+import DebriefOutcomeSummary from './DebriefOutcomeSummary'
 import DimensionBars from './DimensionBars'
 import CriticalFlags from './CriticalFlags'
 import DebriefPanel from './DebriefPanel'
@@ -17,7 +17,7 @@ export default function ScoreScreen({ state, onRestart }) {
         Explicit teaching and performance grading appear here — not during active gameplay.
       </AdvisorPanel>
 
-      <OutcomeTier tier={state.outcomeTier} />
+      <DebriefOutcomeSummary assessment={state.debrief?.assessment} />
 
       {state.debrief && <DebriefPanel debrief={state.debrief} />}
 

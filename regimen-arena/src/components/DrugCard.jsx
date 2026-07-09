@@ -29,7 +29,7 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
       aria-disabled={disabled}
       onClick={handleSelect}
       onKeyDown={handleKeyDown}
-      className={`w-full text-left border rounded-lg p-4 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[#4a9ead]/50 ${
+      className={`w-full text-left border rounded-lg p-4 sm:p-5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[#4a9ead]/50 min-h-[4.5rem] ${
         disabled
           ? 'opacity-40 cursor-not-allowed border-[#2a3544] bg-[#151c26]'
           : selected
@@ -51,11 +51,11 @@ export default function DrugCard({ option, selected, disabled, onSelect, multiSe
 
         <div className="flex-1 min-w-0 space-y-2">
           <header>
-            <h4 className="font-semibold text-sm text-[#e8edf4] leading-snug">
+            <h4 className="font-semibold text-base text-[#e8edf4] leading-snug">
               {display.actionLabel}
             </h4>
             {display.drugClass && (
-              <p className="text-[11px] text-[#8b9cb3] mt-1 leading-snug">{display.drugClass}</p>
+              <p className="text-sm text-[#8b9cb3] mt-1.5 leading-snug">{display.drugClass}</p>
             )}
           </header>
 
