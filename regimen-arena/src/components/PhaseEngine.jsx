@@ -1,18 +1,13 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import PhaseHeader from './PhaseHeader'
-import PatientStatusPanel from './PatientStatusPanel'
-import NewInformationPanel from './NewInformationPanel'
+import ClinicalPhaseLayout from './layout/ClinicalPhaseLayout'
 import DecisionPoint from './DecisionPoint'
-import ClinicalUpdatePanel from './ClinicalUpdatePanel'
 import ContinueButton from './ContinueButton'
 import CriticalErrorOverlay from './CriticalErrorOverlay'
 import NarrativeEventCard from './NarrativeEventCard'
-import InfectionArenaPanel from './arena/InfectionArenaPanel'
-import CaseBriefing from './onboarding/CaseBriefing'
-import AdvisorPanel from './visuals/AdvisorPanel'
 import CaseAdvanceLoadingScreen from './visuals/CaseAdvanceLoadingScreen'
 import OrderReviewPanel from './visuals/OrderReviewPanel'
 import PostDischargePanel from './visuals/PostDischargePanel'
+import AdvisorPanel from './visuals/AdvisorPanel'
 import { getDecisionPoint, getDrugById } from '../utils/decisions'
 import { getAdvisorForPhase, getAdvisorForConditionalEvent } from '../simulation/boneDeep/advisorContext'
 
@@ -62,13 +57,12 @@ export default function PhaseEngine({
   state,
   currentPhaseData,
   totalPhases,
-  onConfirmDecision,
+  onConfirmDecisionAndAdvance,
   onAdvance,
 }) {
   const phaseIndex = state.currentPhase
   const [showCaseClock, setShowCaseClock] = useState(false)
   const [showCriticalOverlay, setShowCriticalOverlay] = useState(false)
-  const [showFeedbackText, setShowFeedbackText] = useState(false)
   const [trailCard, setTrailCard] = useState(null)
   const [orderReview, setOrderReview] = useState(null)
   const [decisionResetKey, setDecisionResetKey] = useState(0)
@@ -98,7 +92,6 @@ export default function PhaseEngine({
   )
 
   useEffect(() => {
-    setShowFeedbackText(false)
     setTrailCard(null)
     setShowCriticalOverlay(false)
     setShowCaseClock(false)
@@ -122,13 +115,9 @@ export default function PhaseEngine({
     return ids.map((id) => getDrugById(id)?.display_name ?? id)
   }, [])
 
-  const handlePlaceOrder = useCallback(
-    (option, subOption) => {
-      setShowFeedbackText(false)
-      setOrderReview({ option, subOption })
-    },
-    []
-  )
+  const handlePlaceOrder = useCallback((option, subOption) => {
+    setOrderReview({ option, subOption })
+  }, [])
 
   const handleChangeOrder = useCallback(() => {
     setOrderReview(null)
@@ -147,14 +136,13 @@ export default function PhaseEngine({
     const pending = pendingConfirmRef.current
     if (!pending || !decisionPoint) return
 
-    onConfirmDecision(decisionPoint, pending.option, phaseIndex, pending.subOption)
+    onConfirmDecisionAndAdvance(decisionPoint, pending.option, phaseIndex, pending.subOption)
     setOrderReview(null)
     pendingConfirmRef.current = null
-    setShowFeedbackText(true)
-  }, [decisionPoint, onConfirmDecision, phaseIndex])
+  }, [decisionPoint, onConfirmDecisionAndAdvance, phaseIndex])
 
   useEffect(() => {
-    if (!showFeedbackText || state.criticalFlags.length === 0) return
+    if (state.criticalFlags.length === 0) return
     const latestCritical = state.criticalFlags[state.criticalFlags.length - 1]
     if (
       latestCritical === 'critical_error_linezolid_bacteremia' ||
@@ -163,13 +151,11 @@ export default function PhaseEngine({
     ) {
       setShowCriticalOverlay(true)
     }
-  }, [showFeedbackText, state.criticalFlags])
+  }, [state.currentPhase, state.criticalFlags])
 
   const isFinalPhase = phaseIndex === totalPhases - 1
 
   const handleAdvance = useCallback(() => {
-    setShowFeedbackText(false)
-
     if (isFinalPhase) {
       onAdvance()
       return
@@ -206,8 +192,8 @@ export default function PhaseEngine({
   }, [onAdvance])
 
   const handleInfoOnlyContinue = useCallback(() => {
-    onAdvance()
-  }, [onAdvance])
+    handleAdvance()
+  }, [handleAdvance])
 
   if (trailCard) {
     const eventAdvisor = state.conditionalEvents[0]
@@ -239,57 +225,23 @@ export default function PhaseEngine({
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <PhaseHeader
-        phase={currentPhaseData}
-        currentIndex={phaseIndex}
-        totalPhases={totalPhases}
-        score={state.score}
-        scoreMaxes={state.scoreMaxes}
-      />
-
-      {phaseAdvisor && !isPostDischargePhase && (
-        <AdvisorPanel
-          spriteKey={phaseAdvisor.spriteKey}
-          title={phaseAdvisor.title}
-          subtitle={phaseAdvisor.subtitle}
-          tone={phaseAdvisor.tone}
-          className="mb-4"
-        >
-          {phaseAdvisor.body}
-        </AdvisorPanel>
-      )}
-
-      <PatientStatusPanel
-        conditionalEvents={state.conditionalEvents}
-        clinicalSnapshot={state.clinicalSnapshot}
-        simulation={state.simulation}
-      />
-
-      {!isPostDischargePhase && (
-        <NewInformationPanel
-          phase={currentPhaseData}
-          conditionalEvents={state.conditionalEvents}
-        />
-      )}
-
+    <ClinicalPhaseLayout
+      phase={currentPhaseData}
+      phaseIndex={phaseIndex}
+      totalPhases={totalPhases}
+      score={state.score}
+      scoreMaxes={state.scoreMaxes}
+      clinicalSnapshot={state.clinicalSnapshot}
+      simulation={state.simulation}
+      activeDrugs={state.activeDrugs}
+      conditionalEvents={state.conditionalEvents}
+      advisor={phaseAdvisor}
+      isPostDischargePhase={isPostDischargePhase}
+    >
       {isPostDischargePhase && <PostDischargePanel simulation={state.simulation} />}
 
-      {!state.showFeedback && !orderReview && !showCaseClock && !isPostDischargePhase && (
-        <CaseBriefing phaseId={currentPhaseData.id} />
-      )}
-
-      {!isPostDischargePhase && (
-        <InfectionArenaPanel
-          phase={currentPhaseData}
-          activeDrugs={state.activeDrugs}
-          conditionalEvents={state.conditionalEvents}
-          clinicalSnapshot={state.clinicalSnapshot}
-        />
-      )}
-
       {isInfoOnlyPhase || isPostDischargePhase ? (
-        <div className="mt-8 flex justify-end">
+        <div className="mt-6 flex justify-end">
           <ContinueButton onClick={handleInfoOnlyContinue} isFinal={isFinalPhase} />
         </div>
       ) : (
@@ -301,7 +253,7 @@ export default function PhaseEngine({
               activeDrugs={state.activeDrugs}
               simulation={state.simulation}
               onConfirm={handlePlaceOrder}
-              disabled={state.showFeedback || showFeedbackText}
+              disabled={false}
             />
           )}
 
@@ -313,14 +265,6 @@ export default function PhaseEngine({
               onChangeOrder={handleChangeOrder}
             />
           )}
-
-          {showFeedbackText && <ClinicalUpdatePanel feedback={state.lastFeedback} />}
-
-          {showFeedbackText && (
-            <div className="mt-6 flex justify-end">
-              <ContinueButton onClick={handleAdvance} isFinal={isFinalPhase} />
-            </div>
-          )}
         </>
       )}
 
@@ -330,6 +274,6 @@ export default function PhaseEngine({
           onDismiss={() => setShowCriticalOverlay(false)}
         />
       )}
-    </div>
+    </ClinicalPhaseLayout>
   )
 }

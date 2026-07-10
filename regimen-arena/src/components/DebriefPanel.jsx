@@ -27,9 +27,18 @@ export default function DebriefPanel({ debrief }) {
         </section>
       )}
 
+      {debrief.assessment?.attributionSummary && (
+        <section className="p-5 rounded-xl border border-[#2a3544] bg-[#151c26]">
+          <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-2">
+            Outcome Attribution
+          </p>
+          <p className="text-sm text-[#b8c5d6] leading-relaxed">{debrief.assessment.attributionSummary}</p>
+        </section>
+      )}
+
       <section className="p-5 rounded-xl border border-[#2a3544] bg-[#151c26]">
         <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-3">
-          Stewardship Performance
+          Domain Scores
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stewardshipPerformance.map(({ domain, score, max, label }) => (

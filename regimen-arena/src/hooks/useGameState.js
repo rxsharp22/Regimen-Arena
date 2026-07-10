@@ -1,10 +1,9 @@
 import { useReducer, useCallback } from 'react'
 import phases from '../data/phases.json'
 import { INITIAL_SCORE, SCORE_MAXES } from '../utils/scoring'
-import { resolveConditionalEvents } from '../utils/conditionalEvents'
-import { buildDecisionEffects, finalizeGame } from '../utils/gameActions'
-import { applyScoreModifiers } from '../utils/scoring'
-import { initBoneDeepSimulation, processBoneDeepPhaseAdvance } from '../simulation/boneDeep'
+import { finalizeGame } from '../utils/gameActions'
+import { initBoneDeepSimulation } from '../simulation/boneDeep'
+import { applyConfirmDecision, applyAdvancePhase } from '../utils/gameReducerHelpers'
 
 const { simulation: initialSimulation, clinicalSnapshot: initialClinicalSnapshot } =
   initBoneDeepSimulation()
@@ -59,118 +58,26 @@ function gameReducer(state, action) {
     }
 
     case 'CONFIRM_DECISION': {
-      const { decisionPoint, option, phaseIndex, subOption } = action
-      const phaseData = phases[phaseIndex]
-
-      const effects = buildDecisionEffects(
-        state,
-        decisionPoint,
-        option,
-        phaseIndex,
-        phaseData,
-        subOption
-      )
-
-      if (subOption?.score_modifiers) {
-        effects.score = applyScoreModifiers(effects.score, subOption.score_modifiers)
-      }
-      if (subOption?.flags) {
-        effects.activeFlags = [...new Set([...effects.activeFlags, ...subOption.flags])]
-      }
-
-      const logEntry = {
-        phase: phaseIndex,
-        phaseLabel: phaseData?.label,
-        decisionId: decisionPoint.id,
-        optionLabel: subOption
-          ? `${option.label ?? effects.optionLabel} → ${subOption.label}`
-          : effects.optionLabel,
-        clinicalUpdate: effects.clinicalUpdate,
-      }
-
+      const afterDecision = applyConfirmDecision(state, action)
+      const logEntry = afterDecision.feedbackLog[afterDecision.feedbackLog.length - 1]
       return {
-        ...state,
-        decisions: {
-          ...state.decisions,
-          [decisionPoint.id]: option.id ?? option.selectedIds,
-          ...(subOption ? { [decisionPoint.oral_stepdown_sub_decision?.id]: subOption.id } : {}),
-        },
-        activeFlags: effects.activeFlags,
-        activeDrugs: effects.activeDrugs,
-        criticalFlags: effects.criticalFlags,
-        score: effects.score,
-        simulation: effects.simulation,
-        eventLog: effects.eventLog,
-        clinicalSnapshot: effects.clinicalSnapshot,
-        feedbackLog: [...state.feedbackLog, logEntry],
+        ...afterDecision,
         showFeedback: true,
         lastFeedback: {
           ...logEntry,
-          option,
-          subOption,
-          clinicalUpdate: effects.clinicalUpdate,
-          allergyCallout: decisionPoint.allergy_callout,
-          showAllergyCallout:
-            decisionPoint.allergy_callout &&
-            (option.allergy_callout ||
-              decisionPoint.allergy_callout.trigger_options?.includes(option.id)),
+          option: action.option,
+          subOption: action.subOption,
         },
       }
     }
 
-    case 'ADVANCE_PHASE': {
-      const next = state.currentPhase + 1
-      const advancingToPhase = phases[next]
-
-      const advanceResult = processBoneDeepPhaseAdvance({
-        simulation: state.simulation,
-        eventLog: state.eventLog,
-        clinicalSnapshot: state.clinicalSnapshot,
-        phaseId: advancingToPhase?.id ?? phases[state.currentPhase]?.id,
-      })
-
-      if (next >= phases.length) {
-        const { tier, debrief } = finalizeGame({
-          ...state,
-          simulation: advanceResult.simulation,
-          eventLog: advanceResult.eventLog,
-        })
-        return {
-          ...state,
-          simulation: advanceResult.simulation,
-          eventLog: advanceResult.eventLog,
-          clinicalSnapshot: advanceResult.clinicalSnapshot,
-          gameStatus: 'complete',
-          outcomeTier: tier,
-          debrief,
-          showFeedback: false,
-          lastFeedback: null,
-        }
-      }
-
-      const { events, scorePenalty } = resolveConditionalEvents(
-        next,
-        state.activeDrugs,
-        state.activeFlags
-      )
-
-      const simEvents = advanceResult.conditionalEvents ?? []
-      const mergedEvents = [...simEvents, ...events]
-
-      return {
-        ...state,
-        currentPhase: next,
-        phaseHistory: [...state.phaseHistory, phases[state.currentPhase].id],
-        simulation: advanceResult.simulation,
-        eventLog: advanceResult.eventLog,
-        clinicalSnapshot: advanceResult.clinicalSnapshot,
-        conditionalEvents: mergedEvents,
-        phaseNarratives: advanceResult.phaseNarratives,
-        score: scorePenalty ? applyScoreModifiers(state.score, scorePenalty) : state.score,
-        showFeedback: false,
-        lastFeedback: null,
-      }
+    case 'CONFIRM_DECISION_AND_ADVANCE': {
+      const afterDecision = applyConfirmDecision(state, action)
+      return applyAdvancePhase(afterDecision)
     }
+
+    case 'ADVANCE_PHASE':
+      return applyAdvancePhase(state)
 
     case 'RESET': {
       const init = initBoneDeepSimulation()
@@ -201,6 +108,13 @@ export function useGameState() {
     []
   )
 
+  const confirmDecisionAndAdvance = useCallback(
+    (decisionPoint, option, phaseIndex, subOption = null) => {
+      dispatch({ type: 'CONFIRM_DECISION_AND_ADVANCE', decisionPoint, option, phaseIndex, subOption })
+    },
+    []
+  )
+
   return {
     state,
     dispatch,
@@ -209,6 +123,7 @@ export function useGameState() {
     advancePhase,
     resetGame,
     confirmDecision,
+    confirmDecisionAndAdvance,
     totalPhases: phases.length,
     currentPhaseData: phases[state.currentPhase] ?? null,
     phases,
