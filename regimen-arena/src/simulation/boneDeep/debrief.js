@@ -1,5 +1,6 @@
 import { SCORE_MAXES, sumAllDimensions, sumAllMaxes } from '../../utils/scoring'
 import { projectClinicalState } from './clinicalProjection'
+import { buildTherapyEventDebriefEntries } from './therapyEvents'
 
 const UNSAFE_DECISION_FLAGS = new Set([
   'critical_no_monitoring_plan',
@@ -78,6 +79,18 @@ function identifySuccesses(eventLog, state) {
   if (state.bacteremiaStatus === 'cleared') {
     successes.push('Achieved blood culture clearance')
   }
+  if (optionIds.has('vanco_pause_slow_restart') || optionIds.has('vanco_document_infusion_reaction')) {
+    successes.push('Managed vancomycin infusion reaction without unnecessary allergy labeling')
+  }
+  if (optionIds.has('cefepime_adjust_monitor') || optionIds.has('cefepime_hold_switch')) {
+    successes.push('Addressed cefepime neurotoxicity concern with dose adjustment or switch')
+  }
+  if (optionIds.has('allergy_proceed_cefazolin')) {
+    successes.push('Reconciled low-risk penicillin allergy and supported MSSA beta-lactam pathway')
+  }
+  if (optionIds.has('dapto_resp_hold_recheck_ck') || optionIds.has('dapto_resp_switch_cefazolin')) {
+    successes.push('Responded appropriately to daptomycin CK toxicity signal')
+  }
   return [...new Set(successes)]
 }
 
@@ -105,6 +118,18 @@ function identifyMissedOpportunities(eventLog, state) {
   if (state.flags.includes('critical_no_monitoring_plan')) {
     missed.push('Discharged without structured outpatient monitoring')
   }
+  if (optionIds.has('vanco_continue_unchanged')) {
+    missed.push('Continued vancomycin infusion unchanged despite infusion reaction symptoms')
+  }
+  if (optionIds.has('cefepime_continue_unchanged')) {
+    missed.push('Did not adjust or reassess cefepime despite neurologic toxicity signal')
+  }
+  if (optionIds.has('allergy_avoid_all_beta_lactams')) {
+    missed.push('Avoided beta-lactams after low-risk allergy clarification for MSSA')
+  }
+  if (optionIds.has('dapto_resp_continue_monitor') && state.daptoToxicityTier === 'severe') {
+    missed.push('Continued daptomycin despite severe CK elevation')
+  }
   return missed
 }
 
@@ -123,6 +148,12 @@ function turningPoints(eventLog, state) {
   }
   for (const c of state.triggeredConsequences) {
     points.push({ time: state.scenarioTimeHours, text: c })
+  }
+  for (const ev of state.therapyEventState?.triggeredEvents ?? []) {
+    points.push({
+      time: ev.triggeredAtHours ?? state.scenarioTimeHours,
+      text: `Therapy event: ${ev.label}`,
+    })
   }
   return points
 }
@@ -326,6 +357,7 @@ export function buildBoneDeepDebrief(state, eventLog, score, criticalFlags) {
   const stewardshipTier = computeStewardshipTier(score, SCORE_MAXES, eventLog, state, criticalFlags)
   const patientOutcomeTier = computePatientOutcomeTier(state)
   const attribution = computeOutcomeAttribution(state, eventLog, stewardshipTier, criticalFlags)
+  const therapyEvents = buildTherapyEventDebriefEntries(state)
 
   const assessment = {
     stewardshipPerformance: stewardshipTier,
@@ -369,6 +401,7 @@ export function buildBoneDeepDebrief(state, eventLog, score, criticalFlags) {
     courseExplanation: courseExplanation(state),
     expertPathway: expertPathway(),
     clinicalSnapshot: snapshot,
+    therapyEvents,
     eventLog,
   }
 }

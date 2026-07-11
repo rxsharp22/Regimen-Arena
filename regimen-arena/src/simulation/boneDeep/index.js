@@ -78,10 +78,12 @@ export function processBoneDeepPhaseAdvance({
   clinicalSnapshot,
   phaseId,
 }) {
-  const { state: nextSim, clinicalNarratives, triggeredConsequences } = advanceBoneDeepTime(
-    simulation,
-    phaseId
-  )
+  const {
+    state: nextSim,
+    clinicalNarratives,
+    triggeredConsequences,
+    therapyConditionalEvents = [],
+  } = advanceBoneDeepTime(simulation, phaseId)
 
   let nextLog = eventLog
   if (triggeredConsequences.length > 0) {
@@ -99,7 +101,10 @@ export function processBoneDeepPhaseAdvance({
     eventLog: nextLog,
     clinicalSnapshot: nextSnapshot,
     phaseNarratives: clinicalNarratives,
-    conditionalEvents: buildConditionalEvents(nextSim, triggeredConsequences),
+    conditionalEvents: [
+      ...therapyConditionalEvents,
+      ...buildConditionalEvents(nextSim, triggeredConsequences),
+    ],
   }
 }
 

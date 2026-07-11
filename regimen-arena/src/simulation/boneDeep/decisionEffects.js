@@ -1,4 +1,8 @@
 import { clamp } from './state'
+import {
+  markTherapyEventResolved,
+  THERAPY_EVENT_DECISION_IDS,
+} from './therapyEvents'
 
 function mergeFlags(state, flags = []) {
   return [...new Set([...state.flags, ...flags])]
@@ -442,12 +446,117 @@ const DAPTO_TOXICITY_RESPONSE_EFFECTS = {
   },
 }
 
+const VANCO_INFUSION_RESPONSE_EFFECTS = {
+  vanco_pause_slow_restart: {
+    stability: 2,
+    toxicityBurden: -1,
+    stewardship: { safety: 8, monitoring: 7 },
+    flags: ['vanco_infusion_managed'],
+  },
+  vanco_slow_premed: {
+    stability: 2,
+    stewardship: { safety: 8, stewardship: 7 },
+    flags: ['vanco_infusion_managed'],
+  },
+  vanco_document_infusion_reaction: {
+    stability: 2,
+    toxicityBurden: -1,
+    stewardship: { safety: 9, stewardship: 8 },
+    flags: ['vanco_infusion_documented'],
+  },
+  vanco_stop_permanent: {
+    toxicityBurden: 1,
+    dischargeReadiness: -5,
+    stewardship: { safety: 6, stewardship: 5 },
+    flags: ['vanco_stopped_infusion'],
+  },
+  vanco_continue_unchanged: {
+    toxicityBurden: 3,
+    stability: -4,
+    dischargeReadiness: -8,
+    stewardship: { safety: 3, monitoring: 2 },
+    flags: ['vanco_infusion_ignored'],
+  },
+}
+
+const CEFEPIME_NEURO_RESPONSE_EFFECTS = {
+  cefepime_adjust_monitor: {
+    renalDoseAdjusted: true,
+    toxicityBurden: -2,
+    stability: 3,
+    stewardship: { safety: 9, dosing: 9, monitoring: 8 },
+    flags: ['cefepime_adjusted_neuro'],
+  },
+  cefepime_hold_switch: {
+    drugs: ['vancomycin'],
+    replacePartial: 'cefepime',
+    toxicityBurden: -1,
+    stability: 2,
+    stewardship: { safety: 8, stewardship: 7 },
+    flags: ['cefepime_held_neuro'],
+  },
+  cefepime_evaluate_other_causes: {
+    toxicityBurden: -1,
+    stability: 1,
+    stewardship: { safety: 7, monitoring: 8 },
+    flags: ['cefepime_reassessed'],
+  },
+  cefepime_continue_unchanged: {
+    toxicityBurden: 4,
+    stability: -8,
+    dischargeReadiness: -12,
+    relapseRisk: 10,
+    stewardship: { safety: 2, dosing: 2 },
+    flags: ['cefepime_neuro_ignored'],
+  },
+}
+
+const ALLERGY_CLARIFICATION_EFFECTS = {
+  allergy_proceed_cefazolin: {
+    allergyStewardship: 'clarified_low_risk',
+    betaLactamAccess: 'available',
+    deescalationScore: 8,
+    toxicityBurden: -2,
+    stewardship: { deescalation: 9, stewardship: 9, safety: 8 },
+    flags: ['allergy_clarified_low_risk'],
+  },
+  allergy_test_dose: {
+    allergyStewardship: 'clarified_low_risk',
+    betaLactamAccess: 'cautious_pathway',
+    stewardship: { safety: 8, stewardship: 7 },
+    flags: ['allergy_test_dose_planned'],
+  },
+  allergy_avoid_all_beta_lactams: {
+    allergyStewardship: 'avoided_despite_clarification',
+    betaLactamAccess: 'restricted_by_label',
+    toxicityBurden: 2,
+    stewardship: { deescalation: 3, stewardship: 4 },
+    flags: ['unnecessary_beta_lactam_avoidance'],
+  },
+  allergy_continue_non_beta_lactam: {
+    allergyStewardship: 'unaddressed',
+    stewardship: { stewardship: 5, deescalation: 4 },
+    flags: ['allergy_unaddressed'],
+  },
+}
+
 const ORAL_AGENT_EFFECTS = {
   oral_tmp_smx: { relapseRisk: -4, stewardship: { stewardship: 8, coverage: 8 } },
   oral_clindamycin: { relapseRisk: -3, stewardship: { stewardship: 7, coverage: 7 } },
   oral_doxycycline: { relapseRisk: -1, stewardship: { stewardship: 6, coverage: 6 } },
   oral_ciprofloxacin: { relapseRisk: 8, flags: ['fluoroquinolone_staph_resistance_risk'], stewardship: { stewardship: 3, coverage: 4 } },
   oral_amoxicillin_clav: { relapseRisk: 5, flags: ['suboptimal_oral_stepdown_agent'], stewardship: { stewardship: 4, coverage: 5 } },
+}
+
+const MISHANDLED_THERAPY_RESPONSES = new Set([
+  'vanco_continue_unchanged',
+  'cefepime_continue_unchanged',
+  'allergy_avoid_all_beta_lactams',
+  'dapto_resp_continue_monitor',
+])
+
+function therapyEventIdForDecision(decisionId) {
+  return Object.entries(THERAPY_EVENT_DECISION_IDS).find(([, id]) => id === decisionId)?.[0]
 }
 
 function applyStewardshipDomains(state, domains = {}) {
@@ -689,6 +798,15 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
       effect = DAPTO_TOXICITY_RESPONSE_EFFECTS[optionId]
       next.daptoToxicityPending = false
       break
+    case 'dp_vanco_infusion_response':
+      effect = VANCO_INFUSION_RESPONSE_EFFECTS[optionId]
+      break
+    case 'dp_cefepime_neuro_response':
+      effect = CEFEPIME_NEURO_RESPONSE_EFFECTS[optionId]
+      break
+    case 'dp_allergy_clarification':
+      effect = ALLERGY_CLARIFICATION_EFFECTS[optionId]
+      break
     default:
       break
   }
@@ -697,6 +815,16 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
     const result = applyEffectBlock(next, effect)
     next = result.state
     hiddenEffects = [...hiddenEffects, ...result.hiddenEffects]
+  }
+
+  const therapyEventId = therapyEventIdForDecision(decisionPoint.id)
+  if (therapyEventId) {
+    const mishandled = MISHANDLED_THERAPY_RESPONSES.has(optionId)
+    next = markTherapyEventResolved(next, therapyEventId, optionId, mishandled)
+    if (therapyEventId === 'dapto_ck_toxicity') {
+      next.daptoToxicityPending = false
+    }
+    hiddenEffects.push(`therapy_event:${therapyEventId}:${optionId}`)
   }
 
   return {

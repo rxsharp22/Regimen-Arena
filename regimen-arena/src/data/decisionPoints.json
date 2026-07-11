@@ -525,6 +525,134 @@
       ]
     }
   },
+  "dp_vanco_infusion_response": {
+    "id": "dp_vanco_infusion_response",
+    "prompt": "Nursing reports flushing, warmth, and pruritus during the vancomycin infusion. Blood pressure remains stable. The infusion is paused while symptoms are assessed. How do you proceed?",
+    "type": "single_select",
+    "therapy_event_only": true,
+    "options": [
+      {
+        "id": "vanco_pause_slow_restart",
+        "label": "Pause infusion, assess severity, restart at slower rate when symptoms improve",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "monitoring": 7 },
+        "flags": ["vanco_infusion_managed"],
+        "feedback": "Appropriate management of a vancomycin infusion reaction with stable hemodynamics."
+      },
+      {
+        "id": "vanco_slow_premed",
+        "label": "Slow future infusions; consider premedication if symptoms recur",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "stewardship": 7 },
+        "flags": ["vanco_infusion_managed"],
+        "feedback": "Slowing infusion and planning for recurrence is reasonable."
+      },
+      {
+        "id": "vanco_document_infusion_reaction",
+        "label": "Document as vancomycin infusion reaction — not IgE-mediated allergy",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 9, "stewardship": 8 },
+        "flags": ["vanco_infusion_documented"],
+        "feedback": "Correctly distinguishes infusion reaction from true allergy when features fit."
+      },
+      {
+        "id": "vanco_stop_permanent",
+        "label": "Stop vancomycin permanently and switch therapy",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 6, "stewardship": 5 },
+        "flags": ["vanco_stopped_infusion"],
+        "feedback": "Permanent discontinuation may be unnecessary for a typical infusion reaction with stable vitals."
+      },
+      {
+        "id": "vanco_continue_unchanged",
+        "label": "Continue infusion unchanged",
+        "outcome": "suboptimal",
+        "score_modifiers": { "safety": 3, "monitoring": 2 },
+        "flags": ["vanco_infusion_ignored"],
+        "feedback": "Continuing unchanged may worsen symptoms and delay appropriate infusion management."
+      }
+    ]
+  },
+  "dp_cefepime_neuro_response": {
+    "id": "dp_cefepime_neuro_response",
+    "prompt": "The patient has new confusion and intermittent myoclonic jerks overnight. Renal function remains impaired and cefepime exposure is on the chart. How do you respond?",
+    "type": "single_select",
+    "therapy_event_only": true,
+    "options": [
+      {
+        "id": "cefepime_adjust_monitor",
+        "label": "Renally adjust cefepime and monitor neurologic status",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 9, "dosing": 9, "monitoring": 8 },
+        "flags": ["cefepime_adjusted_neuro"],
+        "feedback": "Dose adjustment with neurologic monitoring is appropriate when cefepime exposure is high in renal impairment."
+      },
+      {
+        "id": "cefepime_hold_switch",
+        "label": "Hold cefepime and switch to an alternative gram-negative regimen if still needed",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "stewardship": 7 },
+        "flags": ["cefepime_held_neuro"],
+        "feedback": "Holding and switching is reasonable when neurotoxicity is suspected."
+      },
+      {
+        "id": "cefepime_evaluate_other_causes",
+        "label": "Evaluate other causes while reassessing cefepime exposure",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 7, "monitoring": 8 },
+        "flags": ["cefepime_reassessed"],
+        "feedback": "Broad evaluation with reassessment of cefepime is clinically appropriate."
+      },
+      {
+        "id": "cefepime_continue_unchanged",
+        "label": "Continue cefepime unchanged",
+        "outcome": "suboptimal",
+        "score_modifiers": { "safety": 2, "dosing": 2 },
+        "flags": ["cefepime_neuro_ignored"],
+        "feedback": "Unchanged therapy risks worsening neurotoxicity when renal dosing has not been addressed."
+      }
+    ]
+  },
+  "dp_allergy_clarification": {
+    "id": "dp_allergy_clarification",
+    "prompt": "Allergy history is clarified: childhood penicillin rash only, no anaphylaxis or severe cutaneous reaction, with prior cephalexin tolerance. MSSA is confirmed. How do you proceed with beta-lactam stewardship?",
+    "type": "single_select",
+    "therapy_event_only": true,
+    "options": [
+      {
+        "id": "allergy_proceed_cefazolin",
+        "label": "Document low-risk allergy history and proceed with cefazolin if otherwise appropriate",
+        "outcome": "reasonable",
+        "score_modifiers": { "deescalation": 9, "stewardship": 9, "safety": 8 },
+        "flags": ["allergy_clarified_low_risk"],
+        "feedback": "Low-risk allergy phenotype supports beta-lactam use for MSSA when clinically appropriate."
+      },
+      {
+        "id": "allergy_test_dose",
+        "label": "Request cautious test dose or allergy evaluation before beta-lactam use",
+        "outcome": "reasonable",
+        "score_modifiers": { "safety": 8, "stewardship": 7 },
+        "flags": ["allergy_test_dose_planned"],
+        "feedback": "A cautious pathway is acceptable when teams prefer additional reassurance."
+      },
+      {
+        "id": "allergy_avoid_all_beta_lactams",
+        "label": "Avoid all beta-lactams despite low-risk clarification",
+        "outcome": "suboptimal",
+        "score_modifiers": { "deescalation": 3, "stewardship": 4 },
+        "flags": ["unnecessary_beta_lactam_avoidance"],
+        "feedback": "Avoiding beta-lactams after low-risk clarification may preserve broader, more toxic therapy for MSSA."
+      },
+      {
+        "id": "allergy_continue_non_beta_lactam",
+        "label": "Continue current non-beta-lactam therapy without allergy reconciliation",
+        "outcome": "reasonable",
+        "score_modifiers": { "stewardship": 5, "deescalation": 4 },
+        "flags": ["allergy_unaddressed"],
+        "feedback": "Continuing without documentation leaves allergy stewardship incomplete."
+      }
+    ]
+  },
   "dp_dapto_toxicity_response": {
     "id": "dp_dapto_toxicity_response",
     "prompt": "CK has risen on daptomycin with possible muscle symptoms. How do you respond?",

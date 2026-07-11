@@ -125,3 +125,50 @@ export function getAdvisorForConditionalEvent(event) {
   }
   return null
 }
+
+export function getAdvisorForTherapyEvent(decisionId, simulation) {
+  const event = simulation?.therapyEventState?.triggeredEvents?.find(
+    (e) => !e.resolved && e.responseDecisionId === decisionId
+  )
+
+  switch (decisionId) {
+    case 'dp_vanco_infusion_response':
+      return {
+        spriteKey: 'pharmacist',
+        title: 'Pharmacy / Nursing',
+        subtitle: 'Vancomycin infusion reaction',
+        tone: 'warning',
+        body: event?.narrative ?? 'Infusion-related symptoms reported during vancomycin administration.',
+      }
+    case 'dp_cefepime_neuro_response':
+      return {
+        spriteKey: 'pharmacist',
+        title: 'Pharmacy / Neurology concern',
+        subtitle: 'Neurologic change on therapy',
+        tone: 'warning',
+        body:
+          event?.narrative ??
+          'New confusion and myoclonic activity noted. Cefepime exposure is reassessed among other causes.',
+      }
+    case 'dp_allergy_clarification':
+      return {
+        spriteKey: 'scribe5',
+        title: 'Allergy reconciliation',
+        subtitle: 'Beta-lactam stewardship opportunity',
+        tone: 'neutral',
+        body:
+          event?.narrative ??
+          'Allergy history clarification may support appropriate beta-lactam use for MSSA when otherwise indicated.',
+      }
+    case 'dp_dapto_toxicity_response':
+      return {
+        spriteKey: 'pharmacistDesk',
+        title: 'Pharmacy monitoring',
+        subtitle: 'Daptomycin toxicity signal',
+        tone: 'warning',
+        body: simulation?.daptoToxicityNarrative ?? event?.narrative,
+      }
+    default:
+      return null
+  }
+}

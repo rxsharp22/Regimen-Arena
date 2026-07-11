@@ -1,6 +1,7 @@
 import { clamp } from './state'
-import { rollDaptoToxicity, rollVancomycinRenalVariability } from './weightedOutcomes'
+import { rollVancomycinRenalVariability } from './weightedOutcomes'
 import { resolvePostDischargeOutcome } from './postDischarge'
+import { processTherapyEventsOnPhaseEnter } from './therapyEvents'
 
 const PHASE_TIME_HOURS = {
   phase_01: 0,
@@ -179,19 +180,6 @@ function applyNaturalProgression(state, phaseId) {
       if (next.akiOccurred && next.renalDoseAdjusted) {
         narratives.push('Renal function recovering after dose adjustment.')
       }
-      if (next.activeTherapy.includes('daptomycin') && !next.daptoToxicityTier) {
-        const daptoRoll = rollDaptoToxicity(next)
-        if (daptoRoll) {
-          narratives.push(daptoRoll.narrative)
-          next.variabilityFlags = [...(next.variabilityFlags ?? []), daptoRoll.id]
-          next.daptoToxicityTier = daptoRoll.tier
-          next.daptoToxicityNarrative = daptoRoll.narrative
-          if (daptoRoll.requiresResponse) {
-            next.daptoToxicityPending = true
-            next.toxicityBurden = clamp(next.toxicityBurden + 2, 0, 100)
-          }
-        }
-      }
       const vancoRoll = rollVancomycinRenalVariability(next)
       if (vancoRoll) {
         narratives.push(vancoRoll.narrative)
@@ -260,10 +248,14 @@ export function advanceBoneDeepTime(state, phaseId) {
   const progression = applyNaturalProgression(next, phaseId)
   next = progression.state
 
+  const therapyRoll = processTherapyEventsOnPhaseEnter(next, phaseId)
+  next = therapyRoll.state
+
   return {
     state: next,
-    clinicalNarratives: [...triggered, ...progression.narratives],
+    clinicalNarratives: [...triggered, ...progression.narratives, ...therapyRoll.narratives],
     triggeredConsequences: triggered,
+    therapyConditionalEvents: therapyRoll.conditionalEvents ?? [],
   }
 }
 
