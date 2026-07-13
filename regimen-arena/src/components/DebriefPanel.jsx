@@ -68,6 +68,35 @@ export default function DebriefPanel({ debrief }) {
         </section>
       )}
 
+      {debrief.therapyEvents?.length > 0 && (
+        <section className="p-5 rounded-xl border border-[#2a3544] bg-[#151c26]">
+          <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-2">
+            Therapy Events During Admission
+          </p>
+          <p className="text-xs text-[#8b9cb3] mb-4">
+            Events that occurred during this run. You are not graded on events that never triggered.
+          </p>
+          <ul className="space-y-4">
+            {debrief.therapyEvents.map((ev) => (
+              <li key={ev.id} className="text-sm text-[#b8c5d6] border-l-2 border-[#4a9ead]/40 pl-3">
+                <p className="font-medium text-[#e8edf4]">{ev.label}</p>
+                <p className="mt-1 leading-relaxed">{ev.narrative}</p>
+                {ev.responseLabel && (
+                  <p className="mt-1 text-xs text-[#8b9cb3]">Your response: {ev.responseLabel}</p>
+                )}
+                <p className="mt-1 text-xs leading-relaxed">{ev.impact}</p>
+                {ev.expertNote && (
+                  <p className="mt-2 text-xs text-[#4a9ead] leading-relaxed">{ev.expertNote}</p>
+                )}
+                {ev.terminologyNote && (
+                  <p className="mt-1 text-[10px] text-[#8b9cb3] italic">{ev.terminologyNote}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {missedOpportunities.length > 0 && (
         <section className="p-5 rounded-xl border border-[#2a3544] bg-[#151c26]">
           <p className="text-[10px] uppercase tracking-widest text-[#c9a227] font-semibold mb-2">

@@ -19,8 +19,8 @@ Internal QA and balancing reference for **Bone Deep** (`scenario_01`). Not shown
 | 2 | `phase_02b` | T=18h — Preliminary Microbiology | `dp_gram_stain_response` | |
 | 3 | `phase_03` | T=24h — Source Control | `dp_source_control` | |
 | 4 | `phase_04` | T=36h — Renal Dosing | `dp_02_dose_reassessment` | |
-| 5 | `phase_05` | T=48h — Culture Reveal | `dp_03_deescalation` | |
-| 6 | `phase_06` | T=5–7d — Clinical Response | `dp_dapto_toxicity_response` (conditional) | ✓ otherwise |
+| 5 | `phase_05` | T=48h — Culture Reveal | `dp_03_deescalation`; `dp_allergy_clarification` (conditional) | |
+| 6 | `phase_06` | T=5–7d — Clinical Response | therapy event response DPs (conditional) | ✓ otherwise |
 | 7 | `phase_07` | T=7–10d — Duration & Route | `dp_04_duration_and_transition` | |
 | 8 | `phase_08` | Discharge Planning | `dp_05_monitoring_plan` | |
 | 9 | `phase_09` | Post-Discharge Course | — | ✓ (weighted outcome) |
@@ -33,8 +33,8 @@ flowchart TD
   P03 --> P04[phase_04 Renal Dosing]
   P04 --> P05[phase_05 Culture ID]
   P05 --> P06[phase_06 Clinical Response]
-  P06 -->|daptoToxicityPending| DAPTO[dp_dapto_toxicity_response]
-  DAPTO --> P07
+  P06 -->|therapy event pending| THERAPY[therapy event response DP]
+  THERAPY --> P07
   P06 --> P07[phase_07 Duration/Route]
   P07 --> P08[phase_08 Monitoring Plan]
   P08 --> P09[phase_09 Post-Discharge]
@@ -133,40 +133,158 @@ Key options adjust vancomycin interval, hold/redose, switch dapto, reduce cefepi
 
 ---
 
+---
+
+## Therapy event framework (`therapyEvents.js`)
+
+Reusable clinical therapy-event system for Bone Deep. Events **proc** (trigger) based on active therapy, phase timing, renal function, toxicity burden, monitoring, source control, duration, and prior flags. Player is graded only on responses to events that actually occurred (`noProcPenalty: true` on all events).
+
+### State model
+
+```javascript
+therapyEventState: {
+  eligibleEvents: [],
+  triggeredEvents: [],
+  resolvedEvents: [],
+  unresolvedEvents: [],
+  eventResponses: {},
+  eventsThisRun: 0,
+}
+```
+
+Each triggered record: `id`, `label`, `phaseId`, `severity`, `narrative`, `requiresResponse`, `resolved`, `mishandled`, `responseDecisionId`, `triggeredAtHours`, `responseId`.
+
+### Frequency guard
+
+| Guard | Value |
+|-------|------:|
+| `MAX_THERAPY_EVENTS_PER_RUN` | 2 (adverse events) |
+| `MAX_THERAPY_EVENTS_HIGH_RISK` | 3 when toxicity ≥8, unadjusted renal dosing with Cr ≥2.2, or `critical_no_monitoring_plan` |
+| Per-phase proc | At most **one** weighted adverse event per phase entry |
+| No-proc branch | `noProcWeight = 4` (+2 if zero events yet) vs sum of candidate weights |
+| Frequency dampening | After 1 event: ×0.4; after 2: ×0.15 |
+| Allergy clarification | Deterministic on `phase_05` when MSSA revealed; **does not** count toward adverse cap |
+
+### Event catalog
+
+| Event ID | User-facing label | Type | Roll phases | Eligibility (summary) |
+|----------|-------------------|------|-------------|------------------------|
+| `vanco_infusion_reaction` | Vancomycin infusion reaction | toxicity_event | `phase_02b`, `phase_03`, `phase_04` | Vancomycin active; early course (≤48h); not already triggered |
+| `cefepime_neurotoxicity` | Cefepime neurotoxicity concern | toxicity_event | `phase_04`, `phase_06` | Cefepime active; Cr ≥2.0 or renal trend worsening |
+| `dapto_ck_toxicity` | Daptomycin toxicity signal | toxicity_event | `phase_06` | Daptomycin active; uses `rollDaptoToxicity` |
+| `beta_lactam_allergy_clarification` | Beta-lactam allergy clarification | stewardship_opportunity | `phase_05` (deterministic) | MSSA revealed; allergy not yet clarified/avoided |
+
+### Relative weights (adverse events only)
+
+Weights are multiplied by frequency dampening before the no-proc roll.
+
+**Vancomycin infusion reaction** — base `1.5` × modifiers:
+- toxicityBurden ≥6 → ×1.5
+- not renal-adjusted and Cr ≥2.0 → ×1.3
+- scenarioTimeHours ≤24 → ×1.2
+
+**Severity branches** (after proc):
+
+| Branch | Weight | requiresResponse |
+|--------|-------:|:----------------:|
+| mild flushing/pruritus, stable vitals | 5 | no |
+| moderate — pause infusion | 2 (×1.5 if tox ≥6) | **yes** → `dp_vanco_infusion_response` |
+| severe — chest tightness, evaluation | 0.4 | **yes** |
+
+**Cefepime neurotoxicity** — base `1.2` × modifiers:
+- not `renalDoseAdjusted` → ×2.5
+- Cr ≥2.2 → ×1.5
+- scenarioTimeHours ≥36 → ×1.3
+- toxicityBurden ≥6 → ×1.2
+
+Always moderate severity with response DP `dp_cefepime_neuro_response`.
+
+**Daptomycin CK** — candidate weight `2.5` × dampening; internal roll uses existing `rollDaptoToxicity` table (see below). Mild CK: 50% chance to proc without response.
+
+### Response decision points (only when event triggers)
+
+| Event | Decision ID | Mishandled responses (post-discharge / debrief) |
+|-------|-------------|--------------------------------------------------|
+| Vanco infusion | `dp_vanco_infusion_response` | `vanco_continue_unchanged` |
+| Cefepime neuro | `dp_cefepime_neuro_response` | `cefepime_continue_unchanged` |
+| Allergy clarification | `dp_allergy_clarification` | `allergy_avoid_all_beta_lactams` |
+| Daptomycin CK | `dp_dapto_toxicity_response` | `dapto_resp_continue_monitor` (when severe tier) |
+
+### Hidden effects (response summary)
+
+**Vanco infusion:** appropriate pause/slow/document → stability +2, tox −1; continue unchanged → tox +3, stability −4, discharge −8.
+
+**Cefepime neuro:** adjust/hold/switch → renal adjust or switch; continue unchanged → tox +4, stability −8, discharge −12, relapse +10.
+
+**Allergy clarification:** proceed cefazolin → `allergyStewardship: clarified_low_risk`, de-escalation +8, tox −2; avoid all beta-lactams → stewardship loss, tox +2.
+
+### Post-discharge hooks (`getPostDischargeEventModifiers`)
+
+| Trigger / mishandling | Modifier |
+|-----------------------|----------|
+| Unresolved/mishandled cefepime neuro | `rehabBoost +3`, `confusionBoost +4` |
+| Well-managed cefepime neuro | `rehabBoost −1` |
+| Mishandled vanco infusion | `therapyDisruption +3` |
+| Permanent vanco stop after infusion reaction | `therapyDisruption +2` |
+| Allergy → proceed cefazolin | `resolvedBoost +2` |
+| Allergy → avoid all beta-lactams | `therapyDisruption +2` |
+| Unresolved/mishandled daptomycin CK | `rehabBoost +2`, `confusionBoost +1` |
+
+Applied in `buildOutcomeWeights` to `rehab_monitoring`, `followup_failure`, `resolved_completed`, `severe_deterioration`.
+
+### Debrief
+
+`buildTherapyEventDebriefEntries` lists only triggered events with narrative, player response, impact summary, and expert teaching. No penalty for events that never proc’d. Terminology note for vanco: may mention "red man syndrome" in debrief only.
+
+### No-proc / no-penalty rule
+
+- Events not in `triggeredEvents` → no response DP, no missed-opportunity text, no score penalty.
+- `noProcPenalty: true` on all `EVENT_META` entries.
+- Stewardship tier unsafe requires player-driven harm, not random event occurrence alone.
+
+```mermaid
+flowchart TD
+  ENTER[Phase enter] --> ALLERGY{phase_05 + MSSA + unaddressed allergy?}
+  ALLERGY -->|yes| PROC_A[beta_lactam_allergy_clarification]
+  ALLERGY -->|no| CAP{eventsThisRun >= cap?}
+  CAP -->|yes| SKIP[No adverse proc]
+  CAP -->|no| CAND[Build weighted candidates]
+  CAND --> NOPROC{no-proc roll}
+  NOPROC -->|skip| SKIP
+  NOPROC -->|proc| PICK[weightedChoice event]
+  PICK --> NAR[Narrative + optional response DP]
+  PROC_A --> DP_A[dp_allergy_clarification]
+  NAR --> DP[therapy_event_only DP if requiresResponse]
+```
+
+---
+
 ## Phase 7: Clinical Response (`phase_06`)
 
 **Available info:** Repeat cultures, wound status, renal trend.
 
-**Weighted variability (on phase advance):**
+**Weighted variability (on phase advance via `processTherapyEventsOnPhaseEnter`):**
 
-### Daptomycin CK roll (`rollDaptoToxicity`) — only if `daptomycin` in `activeTherapy`
+Adverse events (vanco infusion, cefepime neuro, daptomycin CK) compete in a single weighted roll per phase. See **Therapy event framework** above.
+
+Legacy renal variability (`rollVancomycinRenalVariability`) still runs separately when vanco active.
+
+## Daptomycin Toxicity Branch (integrated therapy event)
+
+**Trigger:** `dapto_ck_toxicity` event via `processTherapyEventsOnPhaseEnter` at `phase_06` (or mild CK narrative without response ~50% of mild rolls).
+
+**Internal roll (`rollDaptoToxicity`) — only if `daptomycin` in `activeTherapy`**
 
 | Branch | Base weight | Modifiers | requiresResponse |
 |--------|------------:|-----------|------------------|
 | `dapto_ck_stable` | 4 | — | no |
-| `dapto_ck_mild` | 3 | × renalWeight (1–3) | no |
+| `dapto_ck_mild` | 3 | × renalWeight (1–3) | no (50% proc without DP) |
 | `dapto_ck_moderate` | 2 | × toxicityWeight × prolonged | **yes** → `daptoToxicityPending` |
 | `dapto_ck_severe` | 1 | × renalWeight × toxicityWeight | **yes** |
 
 `renalWeight`: Cr ≥2.2 → 3, ≥1.9 → 2, else 1.  
 `toxicityWeight`: toxicityBurden ≥6 → 2, else 1.  
 `prolonged`: scenarioTimeHours ≥120 → 2, else 1.
-
-### Vancomycin renal roll (`rollVancomycinRenalVariability`) — if vanco active
-
-| Branch | Weight if dose-adjusted | Weight if not adjusted |
-|--------|------------------------:|-----------------------:|
-| stable | 5 | 2 |
-| SCR rise | 2 | 4 |
-| subtherapeutic | 1 | 2 |
-
-**Sprites:** `pharmacistDesk` if dapto toxicity pending; else `labTech` / `pharmacist`.
-
----
-
-## Daptomycin Toxicity Branch
-
-**Trigger:** `rollDaptoToxicity` returns moderate/severe while on daptomycin at `phase_06` advance.
 
 **Risk modifiers:** ↑ creatinine, ↑ toxicityBurden, prolonged course (≥120h).
 
@@ -180,7 +298,17 @@ Key options adjust vancomycin interval, hold/redose, switch dapto, reduce cefepi
 | `dapto_resp_switch_vancomycin` | Replace with vanco |
 | `dapto_resp_hold_switch_beta_lactam` | Cefazolin after allergy reconciliation |
 
-**If ignored:** Phase blocks on `daptoToxicityPending` until player selects a response (PhaseEngine override).
+**If ignored:** Phase blocks on pending therapy event until player selects response (`getPendingTherapyEventDecisionId` in PhaseEngine).
+
+**Sprites:** `pharmacistDesk` for daptomycin CK; `pharmacist` for vanco/cefepime toxicity; `scribe5` for allergy clarification.
+
+### Vancomycin renal roll (`rollVancomycinRenalVariability`) — if vanco active
+
+| Branch | Weight if dose-adjusted | Weight if not adjusted |
+|--------|------------------------:|-----------------------:|
+| stable | 5 | 2 |
+| SCR rise | 2 | 4 |
+| subtherapeutic | 1 | 2 |
 
 ---
 
@@ -232,9 +360,7 @@ Resolved by `resolvePostDischargeOutcome` (weighted).
 | phase_03 | — | Pending |
 | phase_04 | `pharmacist` | Pending |
 | phase_05+ | `labTech` / arena | MSSA after `organismRevealed` |
-| Dapto toxicity | `pharmacistDesk` | MSSA if revealed |
-| phase_08 OPAT | `pharmacist` | MSSA |
-| phase_09 | `scribe5` | Per outcome variant |
+| Therapy events | `pharmacist` / `pharmacistDesk` / `scribe5` | Per event type |
 | Debrief | `stewardshipLead` | Teaching only |
 
 ---
@@ -275,7 +401,7 @@ Final screen separates three axes (not shown during gameplay):
 | **Patient Outcome** | Resolved / Complex Recovery / Readmitted / ICU Transfer / Death | `postDischargeOutcomeId`, relapse, mortality |
 | **Outcome Attribution** | Mostly decision-driven / Mixed / Mostly clinical variability | Compares monitoring plan strength vs post-discharge event type |
 
-**Unsafe stewardship** requires player-driven harm: no monitoring plan, inadequate source control, ignored toxicity, insufficient duration, linezolid bacteremia, etc.
+**Unsafe stewardship** requires player-driven harm: no monitoring plan, inadequate source control, ignored toxicity, insufficient duration, linezolid bacteremia, mishandled therapy events, etc.
 
 **Clinical variability attribution** when `monitoring >= 7`, no `critical_no_monitoring_plan`, and outcome is `followup_failure` or `line_complication` with Strong/Excellent stewardship.
 
@@ -288,7 +414,11 @@ Final screen separates three axes (not shown during gameplay):
 | `followup_failure` | ×0.35 when monitoring plan strong; +5 when `critical_no_monitoring_plan` |
 | `line_complication` | ×0.2 without OPAT/IV line exposure; ×0.45 when monitoring strong; ×0.25 with dalbavancin |
 | `severe_deterioration` | ×0.15 when source OK, infection controlled, monitoring strong, recovery >0.65 |
-| `resolved_completed` | Requires source OK + active therapy + infection controlled |
+| `resolved_completed` | Requires source OK + active therapy + infection controlled; `resolvedBoost` from allergy clarification |
+
+### Therapy-event post-discharge modifiers (2026-07)
+
+See **Therapy event framework → Post-discharge hooks**. Unresolved cefepime neuro → rehab/confusion; mishandled vanco infusion → therapy disruption; well-handled allergy clarification → smoother resolution weight.
 
 ---
 

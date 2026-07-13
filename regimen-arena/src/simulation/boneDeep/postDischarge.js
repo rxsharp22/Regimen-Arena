@@ -1,4 +1,5 @@
 import { weightedChoice } from './weightedOutcomes'
+import { getPostDischargeEventModifiers } from './therapyEvents'
 
 const OUTCOME_COPY = {
   resolved_completed: {
@@ -83,9 +84,11 @@ function buildOutcomeWeights(state) {
   const monitoringStrong = monitoringPlanStrong(state)
   const opatLine = hasOpatLineExposure(state)
 
+  const eventMods = getPostDischargeEventModifiers(state)
+
   const resolvedBase =
     sourceOk(state) && therapyActive && infectionControlled
-      ? Math.max(1, 6 * recovery + (state.durationAdequacy >= 7 ? 4 : 0) - relapse * 4)
+      ? Math.max(1, 6 * recovery + (state.durationAdequacy >= 7 ? 4 : 0) - relapse * 4 + eventMods.resolvedBoost)
       : Math.max(0.15, recovery)
 
   let followupWeight = 1 + readmit * 5
@@ -105,19 +108,19 @@ function buildOutcomeWeights(state) {
     lineWeight *= 0.25
   }
 
-  let severeWeight = mortality * 4 + poorTox * 2 + poorSource * 4 - recovery * 3
+  let severeWeight = mortality * 4 + poorTox * 2 + poorSource * 4 - recovery * 3 + eventMods.therapyDisruption * 0.5
   if (sourceOk(state) && infectionControlled && monitoringStrong && recovery > 0.65) {
     severeWeight = Math.max(0, severeWeight * 0.15)
   }
 
   return [
     { id: 'resolved_completed', weight: resolvedBase },
-    { id: 'rehab_monitoring', weight: Math.max(1, 3 + (state.opatReadiness < 60 ? 2 : 0)) },
+    { id: 'rehab_monitoring', weight: Math.max(1, 3 + (state.opatReadiness < 60 ? 2 : 0) + eventMods.rehabBoost + eventMods.confusionBoost * 0.5) },
     {
       id: 'readmission_infection',
       weight: Math.max(0.5, 2 + relapse * 8 + poorSource * 6 + poorDuration * 5),
     },
-    { id: 'followup_failure', weight: Math.max(0.2, followupWeight) },
+    { id: 'followup_failure', weight: Math.max(0.2, followupWeight + eventMods.confusionBoost * 0.4) },
     { id: 'line_complication', weight: Math.max(0.15, lineWeight) },
     { id: 'severe_deterioration', weight: Math.max(0, severeWeight) },
   ]

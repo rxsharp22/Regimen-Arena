@@ -1,4 +1,4 @@
-/** Hidden simulation state for Bone Deep — not rendered as numeric meters. */
+import { createInitialTherapyEventState } from './therapyEvents'
 
 export function createInitialBoneDeepState() {
   return {
@@ -59,6 +59,7 @@ export function createInitialBoneDeepState() {
     },
     pendingConsequences: [],
     triggeredConsequences: [],
+    therapyEventState: createInitialTherapyEventState(),
   }
 }
 

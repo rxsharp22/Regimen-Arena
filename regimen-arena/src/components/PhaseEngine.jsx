@@ -9,7 +9,12 @@ import OrderReviewPanel from './visuals/OrderReviewPanel'
 import PostDischargePanel from './visuals/PostDischargePanel'
 import AdvisorPanel from './visuals/AdvisorPanel'
 import { getDecisionPoint, getDrugById } from '../utils/decisions'
-import { getAdvisorForPhase, getAdvisorForConditionalEvent } from '../simulation/boneDeep/advisorContext'
+import {
+  getAdvisorForPhase,
+  getAdvisorForConditionalEvent,
+  getAdvisorForTherapyEvent,
+} from '../simulation/boneDeep/advisorContext'
+import { getPendingTherapyEventDecisionId } from '../simulation/boneDeep/therapyEvents'
 
 const TRANSITION_CARDS = {
   0: {
@@ -68,28 +73,37 @@ export default function PhaseEngine({
   const [decisionResetKey, setDecisionResetKey] = useState(0)
   const pendingConfirmRef = useRef(null)
 
-  const needsDaptoResponse =
-    state.simulation?.daptoToxicityPending && !state.decisions?.dp_dapto_toxicity_response
+  const pendingTherapyDecisionId = getPendingTherapyEventDecisionId(
+    state.simulation,
+    state.decisions
+  )
 
   const decisionPoint = useMemo(() => {
-    if (needsDaptoResponse) return getDecisionPoint('dp_dapto_toxicity_response')
+    if (pendingTherapyDecisionId) return getDecisionPoint(pendingTherapyDecisionId)
     if (currentPhaseData?.decision_point_id) {
       return getDecisionPoint(currentPhaseData.decision_point_id)
     }
     return null
-  }, [currentPhaseData, needsDaptoResponse])
+  }, [currentPhaseData, pendingTherapyDecisionId])
 
   const isPostDischargePhase = currentPhaseData?.post_discharge === true
-  const isInfoOnlyPhase = !decisionPoint && !needsDaptoResponse
+  const isTherapyEventResponse = Boolean(pendingTherapyDecisionId)
+  const isInfoOnlyPhase = !decisionPoint && !isTherapyEventResponse
 
-  const phaseAdvisor = useMemo(
-    () =>
-      getAdvisorForPhase(currentPhaseData?.id, {
-        simulation: state.simulation,
-        conditionalEvents: state.conditionalEvents,
-      }),
-    [currentPhaseData?.id, state.simulation, state.conditionalEvents]
-  )
+  const phaseAdvisor = useMemo(() => {
+    if (pendingTherapyDecisionId) {
+      return getAdvisorForTherapyEvent(pendingTherapyDecisionId, state.simulation)
+    }
+    return getAdvisorForPhase(currentPhaseData?.id, {
+      simulation: state.simulation,
+      conditionalEvents: state.conditionalEvents,
+    })
+  }, [
+    currentPhaseData?.id,
+    state.simulation,
+    state.conditionalEvents,
+    pendingTherapyDecisionId,
+  ])
 
   useEffect(() => {
     setTrailCard(null)
