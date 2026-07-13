@@ -488,7 +488,9 @@ const CEFEPIME_NEURO_RESPONSE_EFFECTS = {
     flags: ['cefepime_adjusted_neuro'],
   },
   cefepime_hold_switch: {
-    drugs: ['vancomycin'],
+    // Removes cefepime from active therapy; gram-negative coverage re-evaluation
+    // is recorded via flag. No replacement drug is added here — whether
+    // alternative GN coverage is needed depends on the active infection state.
     replacePartial: 'cefepime',
     toxicityBurden: -1,
     stability: 2,
@@ -515,9 +517,11 @@ const ALLERGY_CLARIFICATION_EFFECTS = {
   allergy_proceed_cefazolin: {
     allergyStewardship: 'clarified_low_risk',
     betaLactamAccess: 'available',
-    deescalationScore: 8,
+    // deescalationScore intentionally NOT set here — owned by dp_03_deescalation.
+    // Stewardship.deescalation capped at 5 so this reconciliation event cannot
+    // inflate de-escalation domain beyond what actual de-escalation decisions earn.
     toxicityBurden: -2,
-    stewardship: { deescalation: 9, stewardship: 9, safety: 8 },
+    stewardship: { deescalation: 5, stewardship: 9, safety: 8 },
     flags: ['allergy_clarified_low_risk'],
   },
   allergy_test_dose: {
