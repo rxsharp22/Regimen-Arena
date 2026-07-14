@@ -129,6 +129,8 @@ Key options adjust vancomycin interval, hold/redose, switch dapto, reduce cefepi
 
 **Player options:** `dp_03_deescalation` — cefazolin, nafcillin, oxacillin, continue vanco, linezolid, TMP-SMX, etc.
 
+**Conditional therapy event:** `dp_allergy_clarification` may appear when MSSA is revealed and allergy history is unaddressed. Allergy reconciliation here supports later beta-lactam use but does not replace `dp_03_deescalation` scoring (`deescalationScore` is set only by definitive-therapy choices in that decision).
+
 **Sprites:** `labTech`; **MSSA sprite allowed** after this phase advance.
 
 ---
@@ -210,13 +212,26 @@ Always moderate severity with response DP `dp_cefepime_neuro_response`.
 | Allergy clarification | `dp_allergy_clarification` | `allergy_avoid_all_beta_lactams` |
 | Daptomycin CK | `dp_dapto_toxicity_response` | `dapto_resp_continue_monitor` (when severe tier) |
 
+#### Allergy clarification scoring note (post-review)
+
+`allergy_proceed_cefazolin` is allergy **reconciliation**, not MSSA de-escalation:
+
+| Field | `allergy_proceed_cefazolin` effect |
+|-------|-----------------------------------|
+| `allergyStewardship` | `clarified_low_risk` |
+| `betaLactamAccess` | `available` |
+| `toxicityBurden` | −2 |
+| `stewardship.deescalation` (domain) | +5 (reconciliation credit; capped so this event cannot max the domain alone) |
+| `deescalationScore` | **not set** — owned by `dp_03_deescalation` |
+| Definitive MSSA therapy | Still chosen separately in `dp_03_deescalation` |
+
 ### Hidden effects (response summary)
 
 **Vanco infusion:** appropriate pause/slow/document → stability +2, tox −1; continue unchanged → tox +3, stability −4, discharge −8.
 
 **Cefepime neuro:** adjust/hold/switch → renal adjust or switch; continue unchanged → tox +4, stability −8, discharge −12, relapse +10.
 
-**Allergy clarification:** proceed cefazolin → `allergyStewardship: clarified_low_risk`, de-escalation +8, tox −2; avoid all beta-lactams → stewardship loss, tox +2.
+**Allergy clarification (`allergy_proceed_cefazolin`):** documents low-risk allergy reconciliation (`allergyStewardship: clarified_low_risk`, `betaLactamAccess: available`), `toxicityBurden −2`, and contributes **`stewardship.deescalation` +5** only. Does **not** set `deescalationScore` and does **not** substitute for the later MSSA de-escalation decision (`dp_03_deescalation`) — full de-escalation credit still requires an appropriate definitive-therapy choice there. Avoid all beta-lactams → stewardship loss, `toxicityBurden +2`.
 
 ### Post-discharge hooks (`getPostDischargeEventModifiers`)
 
@@ -372,6 +387,8 @@ Resolved by `resolvePostDischargeOutcome` (weighted).
 3. **Confirm / Advance Case Clock** → 5s loading screen
 4. Decision applied + **phase auto-advances** → next phase `ClinicalPhaseLayout` (no post-loading “order acknowledged” screen)
 
+`therapy_event_only` decision points (infusion reaction, neurotoxicity, allergy clarification, daptomycin CK) apply on confirm **without** advancing the phase, so the phase’s primary decision (e.g. `dp_03_deescalation`) can still be completed on the same clock stop.
+
 Info-only phases: **Continue** → optional transition card → next phase.
 
 ---
@@ -430,7 +447,7 @@ _Removed: post-loading ClinicalUpdatePanel “Order acknowledged” step._
 
 ## Known TODOs / clinical assumptions
 
-- Penicillin allergy low-risk phenotype assumed for cefazolin pathways; formal allergy reconciliation is narrative-only.
+- Penicillin allergy low-risk phenotype assumed for cefazolin pathways; `dp_allergy_clarification` documents reconciliation but does not replace `dp_03_deescalation` for `deescalationScore`.
 - Dalbavancin offered as selected OPAT alternative — not universally appropriate; gated in UI.
 - Gram stain phase does not change organism identity early — final ID still at phase_05.
 - Case briefings (`caseBriefings.js`) may be out of phase sync — arena uses `arenaStageMeta` + simulation projection.

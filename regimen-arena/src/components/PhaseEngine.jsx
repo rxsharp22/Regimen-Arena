@@ -62,6 +62,7 @@ export default function PhaseEngine({
   state,
   currentPhaseData,
   totalPhases,
+  onConfirmDecision,
   onConfirmDecisionAndAdvance,
   onAdvance,
 }) {
@@ -150,10 +151,13 @@ export default function PhaseEngine({
     const pending = pendingConfirmRef.current
     if (!pending || !decisionPoint) return
 
-    onConfirmDecisionAndAdvance(decisionPoint, pending.option, phaseIndex, pending.subOption)
+    const confirm = decisionPoint.therapy_event_only
+      ? onConfirmDecision
+      : onConfirmDecisionAndAdvance
+    confirm(decisionPoint, pending.option, phaseIndex, pending.subOption)
     setOrderReview(null)
     pendingConfirmRef.current = null
-  }, [decisionPoint, onConfirmDecisionAndAdvance, phaseIndex])
+  }, [decisionPoint, onConfirmDecision, onConfirmDecisionAndAdvance, phaseIndex])
 
   useEffect(() => {
     if (state.criticalFlags.length === 0) return

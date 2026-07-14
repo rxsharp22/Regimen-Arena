@@ -623,7 +623,7 @@
         "id": "allergy_proceed_cefazolin",
         "label": "Document low-risk allergy history and proceed with cefazolin if otherwise appropriate",
         "outcome": "reasonable",
-        "score_modifiers": { "deescalation": 9, "stewardship": 9, "safety": 8 },
+        "score_modifiers": { "deescalation": 5, "stewardship": 9, "safety": 8 },
         "flags": ["allergy_clarified_low_risk"],
         "feedback": "Low-risk allergy phenotype supports beta-lactam use for MSSA when clinically appropriate."
       },
