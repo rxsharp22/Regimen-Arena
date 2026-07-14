@@ -86,6 +86,7 @@ function MainGame({ onOpenTutorial, onOpenAgentLibrary, onOpenGallery }) {
     beginScenario,
     advancePhase,
     resetGame,
+    confirmDecision,
     confirmDecisionAndAdvance,
     currentPhaseData,
     totalPhases,
@@ -135,6 +136,7 @@ function MainGame({ onOpenTutorial, onOpenAgentLibrary, onOpenGallery }) {
           state={state}
           currentPhaseData={currentPhaseData}
           totalPhases={totalPhases}
+          onConfirmDecision={confirmDecision}
           onConfirmDecisionAndAdvance={confirmDecisionAndAdvance}
           onAdvance={advancePhase}
         />

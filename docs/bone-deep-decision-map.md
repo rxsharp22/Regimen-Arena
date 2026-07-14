@@ -387,6 +387,8 @@ Resolved by `resolvePostDischargeOutcome` (weighted).
 3. **Confirm / Advance Case Clock** → 5s loading screen
 4. Decision applied + **phase auto-advances** → next phase `ClinicalPhaseLayout` (no post-loading “order acknowledged” screen)
 
+`therapy_event_only` decision points (infusion reaction, neurotoxicity, allergy clarification, daptomycin CK) apply on confirm **without** advancing the phase, so the phase’s primary decision (e.g. `dp_03_deescalation`) can still be completed on the same clock stop.
+
 Info-only phases: **Continue** → optional transition card → next phase.
 
 ---
@@ -445,7 +447,7 @@ _Removed: post-loading ClinicalUpdatePanel “Order acknowledged” step._
 
 ## Known TODOs / clinical assumptions
 
-- Penicillin allergy low-risk phenotype assumed for cefazolin pathways; formal allergy reconciliation is narrative-only.
+- Penicillin allergy low-risk phenotype assumed for cefazolin pathways; `dp_allergy_clarification` documents reconciliation but does not replace `dp_03_deescalation` for `deescalationScore`.
 - Dalbavancin offered as selected OPAT alternative — not universally appropriate; gated in UI.
 - Gram stain phase does not change organism identity early — final ID still at phase_05.
 - Case briefings (`caseBriefings.js`) may be out of phase sync — arena uses `arenaStageMeta` + simulation projection.
