@@ -11,7 +11,7 @@ import {
 
 function ConcernChip({ label }) {
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border border-[#344559] bg-[#1a222d] text-[#b8c5d6]">
+    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border border-[#344559] bg-[#1a222d] text-[#b8c5d6]">
       {label}
     </span>
   )
@@ -19,7 +19,7 @@ function ConcernChip({ label }) {
 
 function SnapshotCard({ children }) {
   return (
-    <li className="text-sm text-[#b8c5d6] leading-relaxed flex gap-2">
+    <li className="text-sm sm:text-base text-[#b8c5d6] leading-relaxed flex gap-2">
       <span className="text-[#4a9ead] shrink-0 mt-0.5" aria-hidden>
         •
       </span>
@@ -91,10 +91,10 @@ export default function ClinicalPhaseLayout({
             </Section>
           )}
 
-          <Section title="What Changed Since Last Update">
-            <ul className="space-y-2">
+          <Section title="What Changed Since Last Update" className="border-[#4a9ead]/35 bg-[#1a222d]/80">
+            <ul className="space-y-2.5">
               {whatChanged.map((item, i) => (
-                <li key={`${item.text}-${i}`} className="text-sm leading-relaxed">
+                <li key={`${item.text}-${i}`} className="text-sm sm:text-base leading-relaxed">
                   <span className="font-semibold text-[#4a9ead]">{item.prefix}: </span>
                   <span className="text-[#e8edf4]">{item.text}</span>
                 </li>

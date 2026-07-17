@@ -445,6 +445,38 @@ _Removed: post-loading ClinicalUpdatePanel “Order acknowledged” step._
 
 ---
 
+## Playtest / tuning pass (2026-07)
+
+See **[docs/bone-deep-playtest-matrix.md](bone-deep-playtest-matrix.md)** for QA paths and expected tiers.
+
+### Therapy event frequency (tuned)
+
+| Knob | Before | After |
+|------|--------|-------|
+| Vanco infusion base weight | 1.5 | 1.2 |
+| Daptomycin candidate weight | 2.5 | 2.0 |
+| Cefepime neuro (renal adjusted) | ×2.5 if not adjusted only | ×0.25 if adjusted; ×2.2 if not |
+| No-proc branch weight | 4 (+2 if zero events) | 6 (+3 if zero events) |
+
+Target remains 0–1 adverse events in most runs; `npm run verify:bone-deep` includes seeded frequency smoke tests.
+
+### Scoring coherence (tuned)
+
+- `computeStewardshipTier`: low dimension average without unsafe decision IDs now returns **Concerning**, not **Unsafe** (RNG/low coverage alone should not label strong play Unsafe).
+- `followup_failure` weight: +6 when `critical_no_monitoring_plan` (was +5 additive in builder).
+- `severe_deterioration` dampening when course strong: ×0.12 (was ×0.15).
+
+### Post-discharge narratives
+
+`resolvePostDischargeOutcome` builds **2–3 clinical beats** per outcome from hidden state (OPAT line exposure, source control, etc.). UI renders beats as bullets in phase_09 and debrief.
+
+### Flow verification
+
+- `therapy_event_only` confirms without phase advance (PhaseEngine).
+- Automated: `regimen-arena/scripts/verify-bone-deep-flow.mjs`, `verify-therapy-events.mjs`, `verify-allergy-scoring.mjs` via `npm run verify:bone-deep`.
+
+---
+
 ## Known TODOs / clinical assumptions
 
 - Penicillin allergy low-risk phenotype assumed for cefazolin pathways; `dp_allergy_clarification` documents reconciliation but does not replace `dp_03_deescalation` for `deescalationScore`.
