@@ -84,7 +84,7 @@ function eligibleVancoInfusion(state) {
 }
 
 function weightVancoInfusion(state) {
-  let w = 1.5
+  let w = 1.2
   if (state.toxicityBurden >= 6) w *= 1.5
   if (!state.renalDoseAdjusted && state.creatinine >= 2.0) w *= 1.3
   if (state.scenarioTimeHours <= 24) w *= 1.2
@@ -127,8 +127,9 @@ function eligibleCefepimeNeuro(state) {
 }
 
 function weightCefepimeNeuro(state) {
-  let w = 1.2
-  if (!state.renalDoseAdjusted) w *= 2.5
+  let w = 1.0
+  if (state.renalDoseAdjusted) w *= 0.25
+  if (!state.renalDoseAdjusted) w *= 2.2
   if (state.creatinine >= 2.2) w *= 1.5
   if (state.scenarioTimeHours >= 36) w *= 1.3
   if (state.toxicityBurden >= 6) w *= 1.2
@@ -303,7 +304,7 @@ export function processTherapyEventsOnPhaseEnter(state, phaseId, rng = Math.rand
   const candidates = []
 
   if (EVENT_META.dapto_ck_toxicity.rollPhases.includes(phaseId) && eligibleDapto(next)) {
-    candidates.push({ id: 'dapto_ck_toxicity', weight: 2.5 * damp })
+    candidates.push({ id: 'dapto_ck_toxicity', weight: 2.0 * damp })
   }
   if (EVENT_META.vanco_infusion_reaction.rollPhases.includes(phaseId) && eligibleVancoInfusion(next)) {
     candidates.push({ id: 'vanco_infusion_reaction', weight: weightVancoInfusion(next) * damp })
@@ -317,7 +318,7 @@ export function processTherapyEventsOnPhaseEnter(state, phaseId, rng = Math.rand
   }
 
   // No-proc branch — weighted chance to skip all events this phase
-  const noProcWeight = 4 + (next.therapyEventState.eventsThisRun === 0 ? 2 : 0)
+  const noProcWeight = 6 + (next.therapyEventState.eventsThisRun === 0 ? 3 : 0)
   const totalProcWeight = candidates.reduce((s, c) => s + c.weight, 0)
   const roll = rng() * (totalProcWeight + noProcWeight)
   if (roll > totalProcWeight) {

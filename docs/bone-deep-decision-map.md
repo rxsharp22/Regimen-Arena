@@ -163,7 +163,7 @@ Each triggered record: `id`, `label`, `phaseId`, `severity`, `narrative`, `requi
 | `MAX_THERAPY_EVENTS_PER_RUN` | 2 (adverse events) |
 | `MAX_THERAPY_EVENTS_HIGH_RISK` | 3 when toxicity ≥8, unadjusted renal dosing with Cr ≥2.2, or `critical_no_monitoring_plan` |
 | Per-phase proc | At most **one** weighted adverse event per phase entry |
-| No-proc branch | `noProcWeight = 4` (+2 if zero events yet) vs sum of candidate weights |
+| No-proc branch | `noProcWeight = 6` (+3 if zero events yet) vs sum of candidate weights |
 | Frequency dampening | After 1 event: ×0.4; after 2: ×0.15 |
 | Allergy clarification | Deterministic on `phase_05` when MSSA revealed; **does not** count toward adverse cap |
 
@@ -180,7 +180,7 @@ Each triggered record: `id`, `label`, `phaseId`, `severity`, `narrative`, `requi
 
 Weights are multiplied by frequency dampening before the no-proc roll.
 
-**Vancomycin infusion reaction** — base `1.5` × modifiers:
+**Vancomycin infusion reaction** — base `1.2` × modifiers:
 - toxicityBurden ≥6 → ×1.5
 - not renal-adjusted and Cr ≥2.0 → ×1.3
 - scenarioTimeHours ≤24 → ×1.2
@@ -193,15 +193,16 @@ Weights are multiplied by frequency dampening before the no-proc roll.
 | moderate — pause infusion | 2 (×1.5 if tox ≥6) | **yes** → `dp_vanco_infusion_response` |
 | severe — chest tightness, evaluation | 0.4 | **yes** |
 
-**Cefepime neurotoxicity** — base `1.2` × modifiers:
-- not `renalDoseAdjusted` → ×2.5
+**Cefepime neurotoxicity** — base `1.0` × modifiers:
+- `renalDoseAdjusted` → ×0.25 (strong suppression when correctly adjusted)
+- not `renalDoseAdjusted` → ×2.2
 - Cr ≥2.2 → ×1.5
 - scenarioTimeHours ≥36 → ×1.3
 - toxicityBurden ≥6 → ×1.2
 
 Always moderate severity with response DP `dp_cefepime_neuro_response`.
 
-**Daptomycin CK** — candidate weight `2.5` × dampening; internal roll uses existing `rollDaptoToxicity` table (see below). Mild CK: 50% chance to proc without response.
+**Daptomycin CK** — candidate weight `2.0` × dampening; internal roll uses existing `rollDaptoToxicity` table (see below). Mild CK: 50% chance to proc without response.
 
 ### Response decision points (only when event triggers)
 
@@ -442,6 +443,38 @@ See **Therapy event framework → Post-discharge hooks**. Unresolved cefepime ne
 ## Order flow (legacy note)
 
 _Removed: post-loading ClinicalUpdatePanel “Order acknowledged” step._
+
+---
+
+## Playtest / tuning pass (2026-07)
+
+See **[docs/bone-deep-playtest-matrix.md](bone-deep-playtest-matrix.md)** for QA paths and expected tiers.
+
+### Therapy event frequency (tuned)
+
+| Knob | Before | After |
+|------|--------|-------|
+| Vanco infusion base weight | 1.5 | 1.2 |
+| Daptomycin candidate weight | 2.5 | 2.0 |
+| Cefepime neuro (renal adjusted) | ×2.5 if not adjusted only | ×0.25 if adjusted; ×2.2 if not |
+| No-proc branch weight | 4 (+2 if zero events) | 6 (+3 if zero events) |
+
+Target remains 0–1 adverse events in most runs; `npm run verify:bone-deep` includes seeded frequency smoke tests.
+
+### Scoring coherence (tuned)
+
+- `computeStewardshipTier`: low dimension average without unsafe decision IDs now returns **Concerning**, not **Unsafe** (RNG/low coverage alone should not label strong play Unsafe).
+- `followup_failure` weight: +6 when `critical_no_monitoring_plan` (was +5 additive in builder).
+- `severe_deterioration` dampening when course strong: ×0.12 (was ×0.15).
+
+### Post-discharge narratives
+
+`resolvePostDischargeOutcome` builds **2–3 clinical beats** per outcome from hidden state (OPAT line exposure, source control, etc.). UI renders beats as bullets in phase_09 and debrief.
+
+### Flow verification
+
+- `therapy_event_only` confirms without phase advance (PhaseEngine).
+- Automated: `regimen-arena/scripts/verify-bone-deep-flow.mjs`, `verify-therapy-events.mjs`, `verify-allergy-scoring.mjs` via `npm run verify:bone-deep`.
 
 ---
 

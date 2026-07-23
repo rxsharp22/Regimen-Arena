@@ -231,7 +231,7 @@ export function computeStewardshipTier(score, scoreMaxes, eventLog, state, criti
   if (pct >= 0.78 && missed <= 2) return 'strong'
   if (pct >= 0.62) return 'adequate'
   if (pct >= 0.45 || concerningChoices <= 2) return 'concerning'
-  return 'unsafe'
+  return 'concerning'
 }
 
 export function computePatientOutcomeTier(state) {

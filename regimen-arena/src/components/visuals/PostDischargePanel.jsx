@@ -2,6 +2,24 @@ import AdvisorPanel from './AdvisorPanel'
 import PatientStatusVisual from './PatientStatusVisual'
 import { getSpriteUrlOrFallback } from '../../data/spriteRegistry'
 
+function NarrativeBeats({ text }) {
+  if (!text) return null
+  const beats = text.split(/\n\n+/).filter(Boolean)
+  if (beats.length <= 1) {
+    return <p className="text-sm sm:text-base text-[#b8c5d6] leading-relaxed">{text}</p>
+  }
+  return (
+    <ul className="space-y-3">
+      {beats.map((beat) => (
+        <li key={beat} className="text-sm sm:text-base text-[#b8c5d6] leading-relaxed flex gap-2">
+          <span className="text-[#4a9ead] shrink-0">•</span>
+          <span>{beat}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export default function PostDischargePanel({ simulation }) {
   if (!simulation?.postDischargeNarrative) return null
 
@@ -22,7 +40,7 @@ export default function PostDischargePanel({ simulation }) {
         subtitle="The case clock advances beyond discharge"
         tone={variant === 'declining' ? 'declining' : variant === 'improved' ? 'improving' : 'neutral'}
       >
-        {simulation.postDischargeNarrative}
+        <NarrativeBeats text={simulation.postDischargeNarrative} />
       </AdvisorPanel>
 
       <div className="flex items-center gap-4 p-4 rounded-xl border border-[#2a3544] bg-[#151c26]">

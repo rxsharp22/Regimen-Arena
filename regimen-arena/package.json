@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:bone-deep": "npx vite-node scripts/verify-bone-deep-flow.mjs && npx vite-node scripts/verify-therapy-events.mjs && npx vite-node scripts/verify-allergy-scoring.mjs"
   },
   "dependencies": {
     "react": "^19.2.6",

@@ -18,7 +18,9 @@ export default function DebriefPanel({ debrief }) {
           <p className="text-[10px] uppercase tracking-widest text-[#4a9ead] font-semibold mb-2">
             Post-Discharge Course
           </p>
-          <p className="text-sm text-[#b8c5d6] leading-relaxed">{debrief.postDischarge.narrative}</p>
+          <p className="text-sm sm:text-base text-[#b8c5d6] leading-relaxed whitespace-pre-line">
+            {debrief.postDischarge.narrative}
+          </p>
           {debrief.postDischarge.linkedScenarioUnlocked && (
             <p className="text-xs text-[#4a9ead] mt-3 font-medium">
               Linked scenario unlocked: Line in the Bloodstream
