@@ -40,6 +40,9 @@ function assert(name, condition, detail = '') {
 }
 
 // Therapy_event_only does not advance phase (allergy on phase_05)
+// Allergy clarification is deterministic on phase_05 when MSSA is revealed.
+// We drive to phase_05 manually and assert allergy clarification stays on the
+// same phase index when resolved via confirmOnly (therapy_event_only = true).
 {
   let s = createGameState()
   s = confirmAndAdvance(s, 'dp_01_empiric_regimen', 'opt_vanco_cefepime')
@@ -47,21 +50,37 @@ function assert(name, condition, detail = '') {
   s = confirmAndAdvance(s, 'dp_gram_stain_response', 'gs_continue_empiric')
   s = confirmAndAdvance(s, 'dp_source_control', 'sc_urgent_or')
   s = confirmAndAdvance(s, 'dp_02_dose_reassessment', 'dp02_reduce_cefepime')
-  s = resolveTherapyIfNeeded(s, {
-    dp_vanco_infusion_response: 'vanco_pause_slow_restart',
-    dp_cefepime_neuro_response: 'cefepime_adjust_monitor',
-    dp_allergy_clarification: 'allergy_proceed_cefazolin',
-  })
+  // Drain any non-allergy therapy events that fired on the way to phase_05,
+  // leaving dp_allergy_clarification for the explicit phase-invariance assertion.
+  {
+    let safetyIterations = 0
+    let p = therapyPending(s)
+    while (p && p !== 'dp_allergy_clarification') {
+      if (safetyIterations++ > 5) { failed += 1; console.log('FAIL: therapy event drain looped unexpectedly'); break }
+      const responses = {
+        dp_vanco_infusion_response: 'vanco_pause_slow_restart',
+        dp_cefepime_neuro_response: 'cefepime_adjust_monitor',
+        dp_dapto_toxicity_response: 'dapto_resp_hold_recheck_ck',
+      }
+      if (!responses[p]) { failed += 1; console.log(`FAIL: no canned response for ${p}`); break }
+      s = confirmOnly(s, p, responses[p])
+      p = therapyPending(s)
+    }
+  }
   assert('At culture reveal phase', phases[s.currentPhase]?.id === 'phase_05', phases[s.currentPhase]?.id)
+  // Allergy clarification is deterministic at phase_05 entry
   const pending = therapyPending(s)
+  assert(
+    'Allergy clarification is pending at phase_05',
+    pending === 'dp_allergy_clarification',
+    `pending=${pending ?? 'none'}`
+  )
   if (pending === 'dp_allergy_clarification') {
     const phaseBefore = s.currentPhase
     s = confirmOnly(s, 'dp_allergy_clarification', 'allergy_proceed_cefazolin')
-    assert('Allergy clarification stays on same phase index', s.currentPhase === phaseBefore)
-    assert('MSSA de-escalation DP follows allergy', phases[s.currentPhase]?.decision_point_id === 'dp_03_deescalation')
-    assert('No pending therapy blocks de-escalation', therapyPending(s) === null)
-  } else {
-    console.log('SKIP: allergy clarification did not proc on this run (RNG)')
+    assert('therapy_event_only: allergy clarification stays on same phase index', s.currentPhase === phaseBefore)
+    assert('MSSA de-escalation DP is next after allergy resolved', phases[s.currentPhase]?.decision_point_id === 'dp_03_deescalation')
+    assert('No pending therapy event blocks de-escalation after allergy resolved', therapyPending(s) === null)
   }
 }
 
