@@ -97,8 +97,10 @@ function baseState(drugs) {
   assert('D: Cefazolin renal-adjustment option appears', ids.includes('dp02_adjust_cefazolin'))
   assert('D: Continuation option appears', ids.includes('dp02_no_change'))
   assert(
-    'D: Current cefazolin dose and interval visible',
-    resolved.instruction?.includes('2 g') && resolved.instruction?.includes('q8h')
+    'D: Current cefazolin dose and interval visible (no redundant every q- prefix)',
+    resolved.instruction?.includes('2 g') &&
+      resolved.instruction?.includes('q8h') &&
+      !resolved.instruction?.includes('every q')
   )
 }
 
@@ -115,8 +117,10 @@ function baseState(drugs) {
   assert('E: No duplicate cefazolin adjustment option', !ids.includes('dp02_adjust_cefazolin'))
   assert('E: Coherent continuation option', noChange?.label?.includes('already adjusted'))
   assert(
-    'E: Adjusted dose and interval visible',
-    resolved.instruction?.includes('1 g') && resolved.instruction?.includes('q12h')
+    'E: Adjusted dose and interval visible (no redundant every q- prefix)',
+    resolved.instruction?.includes('1 g') &&
+      resolved.instruction?.includes('q12h') &&
+      !resolved.instruction?.includes('every q')
   )
 
   const { state: after } = applyBoneDeepDecision(

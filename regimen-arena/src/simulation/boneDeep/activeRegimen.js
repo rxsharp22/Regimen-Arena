@@ -47,7 +47,7 @@ export function formatDrugDosing(state, drugId) {
   const dosing = getTherapyDosing(state, drugId)
   const name = drug?.display_name ?? drugId
   if (!dosing) return name
-  return `${name} ${dosing.dose} IV every ${dosing.interval}`
+  return `${name} ${dosing.dose} IV ${dosing.interval}`
 }
 
 export function getActiveTherapyDisplay(state) {

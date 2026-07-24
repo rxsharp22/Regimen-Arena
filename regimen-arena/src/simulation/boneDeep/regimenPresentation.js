@@ -187,9 +187,9 @@ export function resolveDecisionPointForSimulation(decisionPoint, simulation) {
   }
 
   if (decisionPoint.id === 'dp_02_dose_reassessment') {
-    const { note: _note, ...rest } = decisionPoint
     return {
-      ...rest,
+      ...decisionPoint,
+      note: undefined,
       instruction: `Current regimen: ${getActiveTherapyDisplay(simulation)}`,
       options: resolveRenalDoseOptions(decisionPoint.options, simulation),
     }
