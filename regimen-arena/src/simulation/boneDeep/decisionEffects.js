@@ -3,6 +3,11 @@ import {
   markTherapyEventResolved,
   THERAPY_EVENT_DECISION_IDS,
 } from './therapyEvents'
+import {
+  applyTherapyDosingForDrugs,
+  setDrugDosingAdjusted,
+} from './activeRegimen'
+import { isContinuationDeescalation } from './regimenPresentation'
 
 function mergeFlags(state, flags = []) {
   return [...new Set([...state.flags, ...flags])]
@@ -239,8 +244,17 @@ const DOSE_EFFECTS = {
   },
   dp02_dapto_dose_adjust: {
     renalDoseAdjusted: true,
+    adjustDrugDosing: 'daptomycin',
     toxicityBurden: -2,
     renalRisk: -4,
+    stewardship: { safety: 10, dosing: 10 },
+  },
+  dp02_adjust_cefazolin: {
+    renalDoseAdjusted: true,
+    adjustDrugDosing: 'cefazolin',
+    toxicityBurden: -2,
+    renalRisk: -4,
+    stability: 2,
     stewardship: { safety: 10, dosing: 10 },
   },
   dp02_no_change: {
@@ -344,6 +358,44 @@ const DEESCALATION_EFFECTS = {
     deescalationScore: 2,
     flags: ['premature_oral_stepdown_for_bacteremia'],
     stewardship: { coverage: 5, stewardship: 4, deescalation: 3, safety: 6 },
+  },
+}
+
+/** Confirmation when targeted MSSA therapy is already active — no second de-escalation credit. */
+const CONTINUATION_DEESCALATION_EFFECTS = {
+  dp03_cefazolin: {
+    infectionBurden: -4,
+    bacteremiaStatus: 'clearing',
+    stability: 3,
+    allergyStewardship: 'reconciled_low_risk',
+    betaLactamAccess: 'utilized',
+    flags: ['mssa_therapy_confirmed'],
+    stewardship: { coverage: 9, stewardship: 8, safety: 9 },
+  },
+  dp03_nafcillin: {
+    infectionBurden: -4,
+    bacteremiaStatus: 'clearing',
+    stability: 2,
+    allergyStewardship: 'acknowledged',
+    betaLactamAccess: 'utilized_direct_pcn',
+    flags: ['mssa_therapy_confirmed'],
+    stewardship: { coverage: 8, stewardship: 7, safety: 7 },
+  },
+  dp03_oxacillin: {
+    infectionBurden: -4,
+    bacteremiaStatus: 'clearing',
+    stability: 2,
+    allergyStewardship: 'acknowledged',
+    betaLactamAccess: 'utilized_direct_pcn',
+    flags: ['mssa_therapy_confirmed'],
+    stewardship: { coverage: 8, stewardship: 7, safety: 7 },
+  },
+  dp03_daptomycin: {
+    infectionBurden: -2,
+    bacteremiaStatus: 'clearing_slow',
+    stability: 2,
+    flags: ['mssa_therapy_confirmed'],
+    stewardship: { coverage: 7, stewardship: 6, safety: 7 },
   },
 }
 
@@ -587,6 +639,13 @@ function applyEffectBlock(state, effect) {
       next = applyDrugChange(next, effect.drugs, false)
     }
     hiddenEffects.push(`active_therapy:${next.activeTherapy.join('+')}`)
+    next = applyTherapyDosingForDrugs(next, next.activeTherapy)
+    hiddenEffects.push(`therapy_dosing:defaults_applied`)
+  }
+
+  if (effect.adjustDrugDosing) {
+    next = setDrugDosingAdjusted(next, effect.adjustDrugDosing)
+    hiddenEffects.push(`therapy_dosing:${effect.adjustDrugDosing}:renal_adjusted`)
   }
 
   if (effect.stability != null) {
@@ -780,7 +839,12 @@ export function applyBoneDeepDecision(state, decisionPoint, option, subOption = 
       effect = DOSE_EFFECTS[optionId]
       break
     case 'dp_03_deescalation':
-      effect = DEESCALATION_EFFECTS[optionId]
+      if (isContinuationDeescalation(optionId, state)) {
+        effect = CONTINUATION_DEESCALATION_EFFECTS[optionId] ?? null
+        hiddenEffects.push('deescalation:continuation_confirmed')
+      } else {
+        effect = DEESCALATION_EFFECTS[optionId]
+      }
       if (optionId === 'dp03_cefazolin' || optionId === 'dp03_nafcillin' || optionId === 'dp03_oxacillin') {
         next.organismRevealed = true
         next.organismIdentity = 'MSSA'

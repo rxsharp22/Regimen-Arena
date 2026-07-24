@@ -4,6 +4,8 @@ import { advanceBoneDeepTime, getPhaseTimeHours } from './timeProgression'
 import { projectClinicalState, buildImmediateClinicalUpdate } from './clinicalProjection'
 import { buildBoneDeepDebrief, computeDebriefTier } from './debrief'
 import { createEventLogEntry, attachLaterConsequences } from './eventLog'
+import { getRegimenDosingSnapshot } from './activeRegimen'
+import { getRegimenActionForOption, resolveDecisionPointForSimulation } from './regimenPresentation'
 
 export function initBoneDeepSimulation() {
   const simulation = createInitialBoneDeepState()
@@ -22,20 +24,34 @@ export function processBoneDeepDecision({
   informationAvailable,
   activeDrugsBefore,
 }) {
+  const activeRegimenBefore =
+    activeDrugsBefore?.length > 0 ? activeDrugsBefore : [...(simulation.activeTherapy ?? [])]
+  const regimenDosingBefore = getRegimenDosingSnapshot(simulation)
+  const resolvedDecisionPoint = resolveDecisionPointForSimulation(decisionPoint, simulation)
+  const resolvedOption =
+    decisionPoint.type === 'multi_select'
+      ? option
+      : resolvedDecisionPoint.options?.find((o) => o.id === option.id) ?? option
+
   const decisionLabel = subOption
-    ? `${option.label} → ${subOption.label}`
+    ? `${resolvedOption.label} → ${subOption.label}`
     : decisionPoint.type === 'multi_select'
       ? option.selectedIds
           ?.map((id) => decisionPoint.options.find((o) => o.id === id)?.label)
           .filter(Boolean)
           .join('; ') || 'Monitoring plan'
-      : option.label
+      : resolvedOption.label
 
   const { state: nextSim, hiddenEffects, flags = [], pendingConsequences = [], monitoringScore } =
     applyBoneDeepDecision(simulation, decisionPoint, option, subOption, activeDrugsBefore)
 
-  const activeRegimen =
-    nextSim.activeTherapy.length > 0 ? nextSim.activeTherapy : activeDrugsBefore
+  const activeRegimenAfter =
+    nextSim.activeTherapy.length > 0 ? nextSim.activeTherapy : activeRegimenBefore
+  const regimenDosingAfter = getRegimenDosingSnapshot(nextSim)
+  const regimenAction =
+    getRegimenActionForOption(decisionPoint.id, resolvedOption.id ?? option.id, simulation) ??
+    option._regimenAction ??
+    null
 
   const optionIds =
     decisionPoint.type === 'multi_select'
@@ -51,7 +67,12 @@ export function processBoneDeepDecision({
     optionIds,
     decisionLabel,
     informationAvailable,
-    activeRegimen,
+    activeRegimen: activeRegimenAfter,
+    activeRegimenBefore,
+    activeRegimenAfter,
+    regimenDosingBefore,
+    regimenDosingAfter,
+    regimenAction,
     hiddenEffects,
     flags,
     pendingConsequences,
@@ -65,7 +86,7 @@ export function processBoneDeepDecision({
     eventLog: [...eventLog, logEntry],
     clinicalSnapshot: nextSnapshot,
     clinicalUpdate,
-    activeDrugs: activeRegimen,
+    activeDrugs: activeRegimenAfter,
     activeFlags: nextSim.flags,
     hiddenEffects,
     monitoringScore,

@@ -160,7 +160,6 @@
     "id": "dp_02_dose_reassessment",
     "prompt": "Renal function has worsened. SCr is 2.3, estimated CrCl now approximately 22 mL/min. Review your current regimen and adjust dosing as needed.",
     "type": "single_select",
-    "note": "Options are filtered by applicable_if — only show options relevant to drugs currently active from DP1.",
     "options": [
       {
         "id": "dp02_vanco_extend_interval",
@@ -215,6 +214,15 @@
         "score_modifiers": { "safety": 10, "dosing": 10 },
         "flags": [],
         "feedback": "Correct. Daptomycin standard dosing is every 24 hours, but when CrCl falls below 30, the interval should be extended to every 48 hours. This is an important adjustment to prevent accumulation and reduce the risk of myopathy. Continue CK monitoring — risk increases with daptomycin exposure at reduced clearance."
+      },
+      {
+        "id": "dp02_adjust_cefazolin",
+        "label": "Adjust cefazolin dosing for current renal function",
+        "applicable_if": ["cefazolin"],
+        "outcome": "optimal",
+        "score_modifiers": { "safety": 10, "dosing": 10 },
+        "flags": [],
+        "feedback": "Cefazolin is renally cleared. At CrCl near 22 mL/min, extending the interval (for example 1 g IV every 12 hours per institutional protocol) reduces accumulation risk while maintaining MSSA coverage."
       },
       {
         "id": "dp02_no_change",

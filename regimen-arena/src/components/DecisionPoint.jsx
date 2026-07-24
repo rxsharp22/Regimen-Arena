@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import DrugCardGrid from './DrugCardGrid'
 import ConfirmButton from './ConfirmButton'
-import { filterDp2Options } from '../utils/decisions'
 import { isDalbavancinEligible } from '../simulation/boneDeep'
+import { resolveDecisionPointForSimulation } from '../simulation/boneDeep/regimenPresentation'
 
 function filterSimulationOptions(options, simulation) {
   return options.filter((opt) => {
@@ -16,7 +16,6 @@ function filterSimulationOptions(options, simulation) {
 
 export default function DecisionPoint({
   decisionPoint,
-  activeDrugs,
   simulation,
   onConfirm,
   disabled,
@@ -29,13 +28,9 @@ export default function DecisionPoint({
 
   if (!decisionPoint) return null
 
-  const isMulti = decisionPoint.type === 'multi_select'
-  const baseOptions =
-    decisionPoint.id === 'dp_02_dose_reassessment'
-      ? filterDp2Options(decisionPoint.options, activeDrugs)
-      : decisionPoint.options
-
-  const options = filterSimulationOptions(baseOptions, simulation)
+  const resolvedDecisionPoint = resolveDecisionPointForSimulation(decisionPoint, simulation)
+  const isMulti = resolvedDecisionPoint.type === 'multi_select'
+  const options = filterSimulationOptions(resolvedDecisionPoint.options, simulation)
 
   const handleSelect = (id) => {
     if (disabled) return
@@ -62,13 +57,13 @@ export default function DecisionPoint({
     const option = options.find((o) => o.id === selectedId)
     if (!option) return
 
-    if (option.show_oral_stepdown && decisionPoint.oral_stepdown_sub_decision && !pendingOral) {
+    if (option.show_oral_stepdown && resolvedDecisionPoint.oral_stepdown_sub_decision && !pendingOral) {
       setPendingOral(true)
       return
     }
 
     if (pendingOral) {
-      const subOption = decisionPoint.oral_stepdown_sub_decision.options.find(
+      const subOption = resolvedDecisionPoint.oral_stepdown_sub_decision.options.find(
         (o) => o.id === oralSelectedId
       )
       if (!subOption) return
@@ -92,13 +87,12 @@ export default function DecisionPoint({
           Clinical Decision
         </h3>
         <p className="text-base sm:text-lg font-medium text-[#e8edf4] leading-snug">
-          {decisionPoint.prompt}
+          {resolvedDecisionPoint.prompt}
         </p>
-        {decisionPoint.instruction && (
-          <p className="text-sm text-[#8b9cb3] mt-2 leading-relaxed">{decisionPoint.instruction}</p>
-        )}
-        {decisionPoint.note && (
-          <p className="text-sm text-[#8b9cb3] mt-2 italic leading-relaxed">{decisionPoint.note}</p>
+        {resolvedDecisionPoint.instruction && (
+          <p className="text-sm text-[#8b9cb3] mt-2 leading-relaxed">
+            {resolvedDecisionPoint.instruction}
+          </p>
         )}
       </div>
 
@@ -113,10 +107,10 @@ export default function DecisionPoint({
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-[#b8c5d6] font-medium">
-            {decisionPoint.oral_stepdown_sub_decision.prompt}
+            {resolvedDecisionPoint.oral_stepdown_sub_decision.prompt}
           </p>
           <DrugCardGrid
-            options={decisionPoint.oral_stepdown_sub_decision.options}
+            options={resolvedDecisionPoint.oral_stepdown_sub_decision.options}
             selectedId={oralSelectedId}
             selectedIds={[]}
             onSelect={setOralSelectedId}
