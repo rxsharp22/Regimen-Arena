@@ -56,7 +56,7 @@ export default function ClinicalPhaseLayout({
   const whatChanged = buildWhatChanged(phase, conditionalEvents, phaseIndex)
   const snapshot = buildSituationSnapshot(clinicalSnapshot, simulation)
   const concerns = buildActiveConcerns({ clinicalSnapshot, simulation, activeDrugs })
-  const therapySummary = buildActiveTherapySummary(activeDrugs)
+  const therapySummary = buildActiveTherapySummary(activeDrugs, simulation)
 
   return (
     <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">

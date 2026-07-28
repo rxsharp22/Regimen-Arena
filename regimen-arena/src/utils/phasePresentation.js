@@ -1,4 +1,5 @@
 import { getDrugById } from './decisions'
+import { getActiveTherapyDisplay } from '../simulation/boneDeep/activeRegimen'
 
 function formatNewInformationItem(item) {
   if (item.content) return item.content
@@ -100,7 +101,10 @@ export function buildActiveConcerns({ clinicalSnapshot, simulation, activeDrugs 
   return concerns
 }
 
-export function buildActiveTherapySummary(activeDrugs = []) {
+export function buildActiveTherapySummary(activeDrugs = [], simulation = null) {
+  if (simulation?.activeTherapy?.length) {
+    return getActiveTherapyDisplay(simulation)
+  }
   if (!activeDrugs.length) return 'No active antimicrobial orders'
   return activeDrugs.map((id) => getDrugById(id)?.display_name ?? id).join(' + ')
 }
