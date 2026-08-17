@@ -1,3 +1,6 @@
+import { repeatCultureStatusText } from './bacteremiaTrajectory'
+import { deriveClinicalVitals } from './clinicalTrajectory'
+
 function stabilityLabel(score) {
   if (score < 30) return 'critical'
   if (score < 50) return 'guarded'
@@ -36,12 +39,16 @@ function woundDescription(drainage, sourceControl) {
 }
 
 function cultureStatusText(state) {
+  if (state.scenarioTimeHours >= 120 && state.organismRevealed) {
+    return repeatCultureStatusText(state)
+  }
   if (state.cultureClearance === 'cleared') return 'Repeat blood cultures: no growth'
   if (state.bacteremiaStatus === 'positive_pending') return 'Blood cultures pending'
   if (state.gramStainRevealed && !state.organismRevealed) {
     return 'Preliminary Gram stain: gram-positive cocci in clusters — identification pending'
   }
   if (state.bacteremiaStatus === 'positive_confirmed') return 'Blood cultures positive ×2'
+  if (state.bacteremiaStatus === 'positive_persists') return 'Blood cultures remain positive'
   if (state.bacteremiaStatus === 'persistent') return 'Persistent bacteremia on repeat cultures'
   if (state.bacteremiaStatus === 'clearing' || state.bacteremiaStatus === 'clearing_slow') {
     return 'Initial bacteremia; clearance in progress'
@@ -97,14 +104,17 @@ function complicationFlags(state) {
 
 export function projectClinicalState(state, previousSnapshot = null) {
   const stability = stabilityLabel(state.patientStability)
-  const prevFever = previousSnapshot?.vitals?.temp_c ?? state.feverC
+  const derivedVitals = state.scenarioTimeHours >= 120 ? deriveClinicalVitals(state) : null
+  const displayFever = derivedVitals?.feverC ?? state.feverC
+  const displayWbc = derivedVitals?.wbc ?? state.wbc
+  const prevFever = previousSnapshot?.vitals?.temp_c ?? displayFever
   const prevScr = previousSnapshot?.vitals?.scr ?? state.creatinine
-  const prevWbc = previousSnapshot?.vitals?.wbc ?? state.wbc
+  const prevWbc = previousSnapshot?.vitals?.wbc ?? displayWbc
 
   const statusParts = [
-    `T ${state.feverC.toFixed(1)}°C`,
-    state.feverC < 38 ? 'afebrile trend' : 'febrile',
-    `WBC ${state.wbc.toFixed(1)}`,
+    `T ${displayFever.toFixed(1)}°C`,
+    displayFever < 38 ? 'afebrile trend' : 'febrile',
+    `WBC ${displayWbc.toFixed(1)}`,
     renalNarrative(state),
     cultureStatusText(state),
   ]
@@ -118,16 +128,16 @@ export function projectClinicalState(state, previousSnapshot = null) {
     stabilityLabel: stability.charAt(0).toUpperCase() + stability.slice(1),
     statusText: statusParts.join(' · '),
     vitals: {
-      temp_c: Number(state.feverC.toFixed(1)),
+      temp_c: Number(displayFever.toFixed(1)),
       hr: state.patientStability < 40 ? 118 : state.patientStability < 60 ? 104 : 88,
       bp: state.patientStability < 40 ? '98/62' : state.patientStability < 60 ? '108/70' : '122/76',
       scr: Number(state.creatinine.toFixed(1)),
-      wbc: Number(state.wbc.toFixed(1)),
+      wbc: Number(displayWbc.toFixed(1)),
     },
     trend: {
-      temp: feverTrend(prevFever, state.feverC),
+      temp: feverTrend(prevFever, displayFever),
       scr: trendFromDelta(state.creatinine - prevScr),
-      wbc: trendFromDelta(state.wbc - prevWbc),
+      wbc: trendFromDelta(displayWbc - prevWbc),
       hr: state.patientStability < 50 ? 'up' : 'down',
       bp: state.patientStability < 50 ? 'down' : 'up',
     },
