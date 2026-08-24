@@ -163,14 +163,18 @@ function applyNaturalProgression(state, phaseId) {
     case 'phase_06': {
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_06
 
-      const bacteremiaResult = applyBacteremiaTrajectory(next, { phaseId: 'phase_06' })
-      next = bacteremiaResult.state
-      if (bacteremiaResult.narrative) {
-        narratives.push(bacteremiaResult.narrative)
-      }
+      if (!next.clinicalTrajectoryAppliedAtPhase06) {
+        const bacteremiaResult = applyBacteremiaTrajectory(next, { phaseId: 'phase_06' })
+        next = bacteremiaResult.state
+        if (bacteremiaResult.narrative) {
+          narratives.push(bacteremiaResult.narrative)
+        }
 
-      const trajectoryResult = applyClinicalTrajectory(next, 'phase_06')
-      next = trajectoryResult.state
+        const trajectoryResult = applyClinicalTrajectory(next, 'phase_06')
+        next = trajectoryResult.state
+
+        applyOptimalCourseStabilityBonus(next)
+      }
 
       if (next.akiOccurred && next.renalDoseAdjusted) {
         narratives.push('Renal function recovering after dose adjustment.')
@@ -185,7 +189,6 @@ function applyNaturalProgression(state, phaseId) {
         narratives.push(vancoRoll.narrative)
         next.variabilityFlags = [...(next.variabilityFlags ?? []), vancoRoll.id]
       }
-      applyOptimalCourseStabilityBonus(next)
       break
     }
     case 'phase_07':

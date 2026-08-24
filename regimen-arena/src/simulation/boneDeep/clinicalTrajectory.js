@@ -88,7 +88,11 @@ export function deriveWoundDrainage(state) {
  */
 export function applyClinicalTrajectory(state, phaseId = 'phase_06') {
   if (phaseId !== 'phase_06') {
-    return { state, vitals: null }
+    return { state, vitals: null, skipped: false }
+  }
+
+  if (state.clinicalTrajectoryAppliedAtPhase06) {
+    return { state, vitals: null, skipped: true }
   }
 
   let next = { ...state }
@@ -118,7 +122,9 @@ export function applyClinicalTrajectory(state, phaseId = 'phase_06') {
     next.infectionBurden = clamp(next.infectionBurden - 3, 0, 100)
   }
 
-  return { state: next, vitals }
+  next.clinicalTrajectoryAppliedAtPhase06 = true
+
+  return { state: next, vitals, skipped: false }
 }
 
 export function clinicalTrajectorySnapshot(state) {
