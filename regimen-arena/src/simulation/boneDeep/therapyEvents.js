@@ -13,6 +13,27 @@ export function createInitialTherapyEventState() {
     unresolvedEvents: [],
     eventResponses: {},
     eventsThisRun: 0,
+    evaluatedPhases: [],
+  }
+}
+
+export function isTherapyPhaseEvaluated(state, phaseId) {
+  return state.therapyEventState?.evaluatedPhases?.includes(phaseId) ?? false
+}
+
+export function markTherapyPhaseEvaluated(state, phaseId) {
+  const tes = { ...(state.therapyEventState ?? createInitialTherapyEventState()) }
+  if (!tes.evaluatedPhases.includes(phaseId)) {
+    tes.evaluatedPhases = [...tes.evaluatedPhases, phaseId]
+  }
+  return { ...state, therapyEventState: tes }
+}
+
+function completePhaseTherapyEvaluation(state, phaseId, narratives, conditionalEvents = []) {
+  return {
+    state: markTherapyPhaseEvaluated(state, phaseId),
+    narratives,
+    conditionalEvents,
   }
 }
 
@@ -287,17 +308,24 @@ export function processTherapyEventsOnPhaseEnter(state, phaseId, rng = Math.rand
     next.therapyEventState = createInitialTherapyEventState()
   }
 
+  if (isTherapyPhaseEvaluated(next, phaseId)) {
+    return { state: next, narratives: [], conditionalEvents: [] }
+  }
+
   // Deterministic stewardship opportunity — does not count toward adverse-event cap
   if (phaseId === 'phase_05' && eligibleAllergyClarification(next)) {
     const result = procAllergyEvent(next, phaseId)
-    next = result.state
-    narratives.push(result.narrative)
-    return { state: next, narratives, conditionalEvents: buildConditionalFromProc(result.proc, result.narrative) }
+    return completePhaseTherapyEvaluation(
+      result.state,
+      phaseId,
+      [result.narrative],
+      buildConditionalFromProc(result.proc, result.narrative)
+    )
   }
 
   const cap = eventsCap(next)
   if (next.therapyEventState.eventsThisRun >= cap) {
-    return { state: next, narratives, conditionalEvents: [] }
+    return completePhaseTherapyEvaluation(next, phaseId, [], [])
   }
 
   const damp = frequencyDampening(next)
@@ -314,7 +342,7 @@ export function processTherapyEventsOnPhaseEnter(state, phaseId, rng = Math.rand
   }
 
   if (!candidates.length) {
-    return { state: next, narratives, conditionalEvents: [] }
+    return completePhaseTherapyEvaluation(next, phaseId, [], [])
   }
 
   // No-proc branch — weighted chance to skip all events this phase
@@ -322,12 +350,12 @@ export function processTherapyEventsOnPhaseEnter(state, phaseId, rng = Math.rand
   const totalProcWeight = candidates.reduce((s, c) => s + c.weight, 0)
   const roll = rng() * (totalProcWeight + noProcWeight)
   if (roll > totalProcWeight) {
-    return { state: next, narratives, conditionalEvents: [] }
+    return completePhaseTherapyEvaluation(next, phaseId, [], [])
   }
 
   const chosen = weightedChoice(candidates, rng)
   if (!chosen) {
-    return { state: next, narratives, conditionalEvents: [] }
+    return completePhaseTherapyEvaluation(next, phaseId, [], [])
   }
 
   let result
@@ -342,17 +370,18 @@ export function processTherapyEventsOnPhaseEnter(state, phaseId, rng = Math.rand
       result = procCefepimeEvent(next, phaseId)
       break
     default:
-      return { state: next, narratives, conditionalEvents: [] }
+      return completePhaseTherapyEvaluation(next, phaseId, [], [])
   }
 
   next = result.state
   if (result.narrative) narratives.push(result.narrative)
 
-  return {
-    state: next,
+  return completePhaseTherapyEvaluation(
+    next,
+    phaseId,
     narratives,
-    conditionalEvents: buildConditionalFromProc(result.proc, result.narrative),
-  }
+    buildConditionalFromProc(result.proc, result.narrative)
+  )
 }
 
 function buildConditionalFromProc(procId, narrative) {

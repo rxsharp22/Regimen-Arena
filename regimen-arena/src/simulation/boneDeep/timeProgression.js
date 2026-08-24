@@ -1,5 +1,6 @@
 import { clamp } from './state'
 import { rollVancomycinRenalVariability } from './weightedOutcomes'
+import { isTherapyPhaseEvaluated } from './therapyEvents'
 import { resolvePostDischargeOutcome } from './postDischarge'
 import { processTherapyEventsOnPhaseEnter } from './therapyEvents'
 import { applyBacteremiaTrajectory } from './bacteremiaTrajectory'
@@ -184,7 +185,9 @@ function applyNaturalProgression(state, phaseId) {
         narratives.push('Post-debridement wound improving. Renal function trending per course.')
       }
 
-      const vancoRoll = rollVancomycinRenalVariability(next)
+      const vancoRoll = isTherapyPhaseEvaluated(next, 'phase_06')
+        ? null
+        : rollVancomycinRenalVariability(next)
       if (vancoRoll) {
         narratives.push(vancoRoll.narrative)
         next.variabilityFlags = [...(next.variabilityFlags ?? []), vancoRoll.id]

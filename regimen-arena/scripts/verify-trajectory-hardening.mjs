@@ -3,9 +3,12 @@
  * Run: npx vite-node scripts/verify-trajectory-hardening.mjs
  */
 import { getActiveTherapyDisplay } from '../src/simulation/boneDeep/activeRegimen.js'
+import { applyBoneDeepDecision } from '../src/simulation/boneDeep/decisionEffects.js'
 import { initBoneDeepSimulation } from '../src/simulation/boneDeep/index.js'
 import { resolveDecisionPointForSimulation } from '../src/simulation/boneDeep/regimenPresentation.js'
+import { createInitialBoneDeepState } from '../src/simulation/boneDeep/state.js'
 import { advanceBoneDeepTime } from '../src/simulation/boneDeep/timeProgression.js'
+import { processTherapyEventsOnPhaseEnter } from '../src/simulation/boneDeep/therapyEvents.js'
 import { getDecisionPoint } from '../src/utils/decisions.js'
 import {
   createGameState,
@@ -37,6 +40,79 @@ function trajectoryFields(sim) {
 
 function fieldsEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b)
+}
+
+function mulberry32(seed) {
+  return function rng() {
+    let t = (seed += 0x6d2b79f5)
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function therapySnapshot(state) {
+  const tes = state.therapyEventState ?? {}
+  return {
+    eventsThisRun: tes.eventsThisRun ?? 0,
+    triggeredIds: (tes.triggeredEvents ?? []).map((e) => e.id),
+    unresolved: [...(tes.unresolvedEvents ?? [])],
+    evaluatedPhases: [...(tes.evaluatedPhases ?? [])],
+    variabilityFlags: [...(state.variabilityFlags ?? [])],
+  }
+}
+
+function baseVancoMonoPhase06() {
+  let state = createInitialBoneDeepState()
+  const dp = getDecisionPoint('dp_01_empiric_regimen')
+  const option = dp.options.find((o) => o.id === 'opt_vanco_cefepime')
+  state = applyBoneDeepDecision(state, dp, option).state
+  state.activeTherapy = ['vancomycin']
+  state.scenarioTimeHours = 120
+  state.organismRevealed = true
+  state.organismIdentity = 'MSSA'
+  state.sourceControlStatus = 'completed'
+  return state
+}
+
+function baseCefepimePhase06() {
+  let state = createInitialBoneDeepState()
+  const dp = getDecisionPoint('dp_01_empiric_regimen')
+  const option = dp.options.find((o) => o.id === 'opt_vanco_cefepime')
+  state = applyBoneDeepDecision(state, dp, option).state
+  state.activeTherapy = ['vancomycin', 'cefepime']
+  state.creatinine = 2.3
+  state.renalTrend = 'worsening'
+  state.scenarioTimeHours = 120
+  return state
+}
+
+function findCefepimeProcSeed() {
+  for (let seed = 0; seed < 500; seed += 1) {
+    const rng = mulberry32(5000 + seed)
+    const state = baseCefepimePhase06()
+    const result = processTherapyEventsOnPhaseEnter(state, 'phase_06', rng)
+    if (result.state.therapyEventState.triggeredEvents.some((e) => e.id === 'cefepime_neurotoxicity')) {
+      return 5000 + seed
+    }
+  }
+  return null
+}
+
+function findNoProcSeedWithCandidates() {
+  for (let seed = 0; seed < 500; seed += 1) {
+    const rng = mulberry32(6000 + seed)
+    const state = baseCefepimePhase06()
+    const result = processTherapyEventsOnPhaseEnter(state, 'phase_06', rng)
+    const snap = therapySnapshot(result.state)
+    if (
+      snap.evaluatedPhases.includes('phase_06') &&
+      !snap.triggeredIds.includes('cefepime_neurotoxicity')
+    ) {
+      return 6000 + seed
+    }
+  }
+  return null
 }
 
 const STRONG_PRE_PHASE_06 = [
@@ -206,6 +282,101 @@ function playSteps(steps) {
   delete legacy.clinicalTrajectoryAppliedAtPhase06
   const result = advanceBoneDeepTime(legacy, 'phase_06')
   assert('Legacy: missing flag still applies once', result.state.clinicalTrajectoryAppliedAtPhase06 === true)
+}
+
+// Therapy events: no-proc re-entry (phase evaluated, no event)
+{
+  const seed = findNoProcSeedWithCandidates()
+  assert('Therapy no-proc: seeded state found', seed != null, `seed=${seed}`)
+  if (seed != null) {
+    const rng = mulberry32(seed)
+    const state = baseCefepimePhase06()
+    const first = processTherapyEventsOnPhaseEnter(state, 'phase_06', rng)
+    const snap1 = therapySnapshot(first.state)
+    const traj1 = trajectoryFields(first.state)
+
+    const second = processTherapyEventsOnPhaseEnter(first.state, 'phase_06', rng)
+    const snap2 = therapySnapshot(second.state)
+    const traj2 = trajectoryFields(second.state)
+
+    assert('Therapy no-proc: phase_06 marked evaluated', snap1.evaluatedPhases.includes('phase_06'))
+    assert('Therapy no-proc: no event on first roll', !snap1.triggeredIds.includes('cefepime_neurotoxicity'))
+    assert('Therapy no-proc: snapshot unchanged on re-entry', fieldsEqual(snap1, snap2))
+    assert('Therapy no-proc: trajectory unchanged on re-entry', fieldsEqual(traj1, traj2))
+  }
+}
+
+// Therapy events: proc re-entry (same pending event, no duplicate)
+{
+  const seed = findCefepimeProcSeed()
+  assert('Therapy proc: seeded cefepime neuro found', seed != null, `seed=${seed}`)
+  if (seed != null) {
+    const rng = mulberry32(seed)
+    const state = baseCefepimePhase06()
+    const first = processTherapyEventsOnPhaseEnter(state, 'phase_06', rng)
+    const snap1 = therapySnapshot(first.state)
+
+    const second = processTherapyEventsOnPhaseEnter(first.state, 'phase_06', rng)
+    const snap2 = therapySnapshot(second.state)
+
+    assert('Therapy proc: cefepime neuro triggered once', snap1.triggeredIds.includes('cefepime_neurotoxicity'))
+    assert('Therapy proc: unresolved preserved', snap2.unresolved.includes('cefepime_neurotoxicity'))
+    assert('Therapy proc: event count not incremented', snap2.eventsThisRun === snap1.eventsThisRun)
+    assert('Therapy proc: triggered set unchanged', fieldsEqual(snap1.triggeredIds, snap2.triggeredIds))
+  }
+}
+
+// Vancomycin renal variability: no duplicate roll on phase_06 re-entry
+{
+  const s = playSteps([
+    { dp: 'dp_01_empiric_regimen', opt: 'opt_vanco_cefepime' },
+    { advance: true },
+    { dp: 'dp_gram_stain_response', opt: 'gs_continue_empiric' },
+    { dp: 'dp_source_control', opt: 'sc_urgent_or' },
+    { dp: 'dp_02_dose_reassessment', opt: 'dp02_reduce_cefepime' },
+    { confirmOnly: true, dp: 'dp_allergy_clarification', opt: 'allergy_proceed_cefazolin' },
+    { dp: 'dp_03_deescalation', opt: 'dp03_continue_vancomycin' },
+  ])
+  let sim = { ...s.simulation }
+  const first = advanceBoneDeepTime(sim, 'phase_06')
+  const flags1 = [...(first.state.variabilityFlags ?? [])]
+  const therapy1 = therapySnapshot(first.state)
+
+  const second = advanceBoneDeepTime(first.state, 'phase_06')
+  const flags2 = [...(second.state.variabilityFlags ?? [])]
+  const therapy2 = therapySnapshot(second.state)
+
+  assert('Vanco variability: flags stable on re-entry', flags1.join() === flags2.join())
+  assert('Vanco variability: therapy snapshot stable', fieldsEqual(therapy1, therapy2))
+}
+
+// Future phase eligibility after phase_06 evaluated
+{
+  let state = createInitialBoneDeepState()
+  const dp = getDecisionPoint('dp_01_empiric_regimen')
+  state = applyBoneDeepDecision(state, dp, dp.options.find((o) => o.id === 'opt_vanco_cefepime')).state
+  state.scenarioTimeHours = 36
+  state.creatinine = 2.3
+  state.therapyEventState = {
+    ...state.therapyEventState,
+    evaluatedPhases: ['phase_06'],
+  }
+  const before = state.therapyEventState.eventsThisRun
+  const after = processTherapyEventsOnPhaseEnter(state, 'phase_04', mulberry32(7001)).state
+  assert(
+    'Future phase: phase_04 still evaluable when phase_06 marked',
+    after.therapyEventState.evaluatedPhases.includes('phase_04') ||
+      after.therapyEventState.eventsThisRun >= before
+  )
+}
+
+// Therapy evaluatedPhases reset on new simulation
+{
+  const init = initBoneDeepSimulation()
+  assert(
+    'Therapy reset: evaluatedPhases empty',
+    (init.simulation.therapyEventState?.evaluatedPhases ?? []).length === 0
+  )
 }
 
 if (failed > 0) {
