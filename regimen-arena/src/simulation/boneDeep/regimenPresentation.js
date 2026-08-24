@@ -61,11 +61,19 @@ export function resolveDeescalationOptions(options, state) {
   for (const opt of options) {
     if (opt.id === 'dp03_continue_vancomycin') {
       if (!isDrugActive(state, 'vancomycin')) continue
-      resolved.push({
-        ...opt,
-        label: 'Continue vancomycin IV',
-        _regimenAction: 'continue',
-      })
+      if (isMonotherapy(state, 'vancomycin')) {
+        resolved.push({
+          ...opt,
+          label: 'Continue vancomycin IV',
+          _regimenAction: 'continue',
+        })
+      } else {
+        resolved.push({
+          ...opt,
+          label: 'Narrow to Vancomycin IV',
+          _regimenAction: 'narrow',
+        })
+      }
       continue
     }
 
@@ -142,7 +150,10 @@ export function resolveRenalDoseOptions(options, state) {
 
 export function isContinuationDeescalation(optionId, state) {
   const target = DEESCALATION_TARGETS[optionId]
-  if (!target) return optionId === 'dp03_continue_vancomycin' && isDrugActive(state, 'vancomycin')
+  if (!target) {
+    if (optionId !== 'dp03_continue_vancomycin') return false
+    return isMonotherapy(state, 'vancomycin')
+  }
   return isMonotherapy(state, target)
 }
 
@@ -160,7 +171,7 @@ export function getRegimenActionForOption(decisionPointId, optionId, state) {
 
   if (decisionPointId === 'dp_03_deescalation') {
     if (optionId === 'dp03_continue_vancomycin' && isDrugActive(state, 'vancomycin')) {
-      return 'continue'
+      return isMonotherapy(state, 'vancomycin') ? 'continue' : 'narrow'
     }
     if (isContinuationDeescalation(optionId, state)) return 'continue'
     const target = DEESCALATION_TARGETS[optionId]

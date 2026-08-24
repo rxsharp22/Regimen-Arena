@@ -61,6 +61,7 @@ export function createInitialBoneDeepState() {
     pendingConsequences: [],
     triggeredConsequences: [],
     therapyEventState: createInitialTherapyEventState(),
+    clinicalTrajectoryAppliedAtPhase06: false,
   }
 }
 
