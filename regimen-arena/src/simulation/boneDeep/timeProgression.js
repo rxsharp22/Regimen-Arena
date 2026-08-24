@@ -2,6 +2,9 @@ import { clamp } from './state'
 import { rollVancomycinRenalVariability } from './weightedOutcomes'
 import { resolvePostDischargeOutcome } from './postDischarge'
 import { processTherapyEventsOnPhaseEnter } from './therapyEvents'
+import { applyBacteremiaTrajectory } from './bacteremiaTrajectory'
+import { applyClinicalTrajectory } from './clinicalTrajectory'
+import { hasPreferredMssaBetaLactam } from './bacteremiaTrajectory'
 
 const PHASE_TIME_HOURS = {
   phase_01: 0,
@@ -107,7 +110,7 @@ function applyOptimalCourseStabilityBonus(state) {
   const bacteremiaControlled =
     state.bacteremiaStatus === 'cleared' ||
     state.cultureClearance === 'cleared' ||
-    state.deescalationScore >= 8
+    (state.organismIdentity === 'MSSA' && hasPreferredMssaBetaLactam(state))
 
   if (
     state.sourceControlStatus === 'completed' &&
@@ -155,31 +158,28 @@ function applyNaturalProgression(state, phaseId) {
       next.organismIdentity = 'MSSA'
       next.susceptibilityRevealed = true
       narratives.push('Organism identified: MSSA with beta-lactam susceptibility.')
-      if (next.deescalationScore >= 8 && next.sourceControlStatus === 'completed') {
-        next.bacteremiaStatus = 'cleared'
-        next.cultureClearance = 'cleared'
-        next.feverC = clamp(next.feverC - 0.5, 36.0, 40.5)
-        next.wbc = clamp(next.wbc - 2, 4, 30)
-        narratives.push('Repeat blood cultures at 72 hours: no growth.')
-      } else if (next.persistentBacteremia || next.bacteremiaStatus === 'persistent') {
-        next.bacteremiaStatus = 'persistent'
-        next.cultureClearance = 'positive'
-        narratives.push('Repeat blood cultures remain positive.')
-      } else {
-        narratives.push('Blood cultures under evaluation.')
-      }
+      narratives.push('Definitive therapy and repeat cultures will be reassessed with clinical course.')
       break
     case 'phase_06': {
       next.scenarioTimeHours = PHASE_TIME_HOURS.phase_06
-      if (next.sourceControlStatus === 'completed') {
-        next.woundDrainage = 'serous_minimal'
-        next.creatinine = clamp(next.creatinine - 0.2, 1.2, 4.5)
-        next.renalTrend = 'improving'
-        narratives.push('Post-debridement wound improving. Renal function trending toward baseline.')
+
+      const bacteremiaResult = applyBacteremiaTrajectory(next, { phaseId: 'phase_06' })
+      next = bacteremiaResult.state
+      if (bacteremiaResult.narrative) {
+        narratives.push(bacteremiaResult.narrative)
       }
+
+      const trajectoryResult = applyClinicalTrajectory(next, 'phase_06')
+      next = trajectoryResult.state
+
       if (next.akiOccurred && next.renalDoseAdjusted) {
         narratives.push('Renal function recovering after dose adjustment.')
+      } else if (next.akiOccurred && !next.renalDoseAdjusted) {
+        narratives.push('Renal function remains impaired; antimicrobial dosing requires reassessment.')
+      } else if (next.sourceControlStatus === 'completed') {
+        narratives.push('Post-debridement wound improving. Renal function trending per course.')
       }
+
       const vancoRoll = rollVancomycinRenalVariability(next)
       if (vancoRoll) {
         narratives.push(vancoRoll.narrative)
